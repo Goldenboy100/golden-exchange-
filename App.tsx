@@ -77,7 +77,7 @@ const App: React.FC = () => {
 
   const [users, setUsers] = useState<User[]>([]);
 
-  // Fetch users from API on mount
+  // Fetch users from API on mount and poll for updates
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -90,7 +90,11 @@ const App: React.FC = () => {
         console.error("Failed to fetch users:", err);
       }
     };
+    
     fetchUsers();
+    // Poll every 5 seconds to keep all devices in sync
+    const interval = setInterval(fetchUsers, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const saveUsersToApi = async (updatedUsers: User[]) => {
