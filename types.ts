@@ -39,7 +39,7 @@ export interface User {
   name: string;
   email: string;
   password?: string;
-  role: 'admin' | 'user' | 'developer' | 'staff' | 'VIP+';
+  role: 'admin' | 'user' | 'developer' | 'staff' | 'VIP+' | 'kargeri' | 'editor';
   status: 'pending' | 'approved' | 'blocked';
   createdAt: string;
   expiresAt?: string; // ISO date string for expiration
@@ -76,4 +76,4 @@ export interface AppConfig {
 
 export type ThemeMode = 'light' | 'dark' | 'system' | 'paper';
 export type LanguageCode = 'ku' | 'ar' | 'en';
-export type ViewMode = 'market' | 'metals' | 'crypto' | 'admin' | 'converter' | 'settings' | 'developer' | 'favorites';
+export type ViewMode = 'market' | 'metals' | 'crypto' | 'admin' | 'converter' | 'settings' | 'developer' | 'favorites' | 'kargeri' | 'editor';

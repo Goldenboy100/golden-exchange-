@@ -13,6 +13,8 @@ import AdminDashboard from './components/AdminDashboard.tsx';
 import SettingsView from './components/SettingsView.tsx';
 import DeveloperView from './components/DeveloperView.tsx';
 import FavoritesView from './components/FavoritesView.tsx';
+import KargeriDashboard from './components/KargeriDashboard.tsx';
+import EditorDashboard from './components/EditorDashboard.tsx';
 import Login from './components/Login.tsx';
 import { supabase, isSupabaseConfigured } from './src/lib/supabase';
 
@@ -421,7 +423,6 @@ const App: React.FC = () => {
       root.style.setProperty('--card-color', theme === 'dark' ? '#1e293b' : config.cardColor || '#ffffff');
       root.style.setProperty('--app-radius', `${config.borderRadius}px`);
       root.style.setProperty('--app-font-size', `${config.fontSize}px`);
-      root.style.setProperty('--app-font', config.fontFamily || "'Noto Sans Arabic', sans-serif");
       root.style.fontSize = `${config.fontSize}px`;
       
       localStorage.setItem(`${STORAGE_KEY}_rates`, JSON.stringify(rates));
@@ -581,6 +582,16 @@ const App: React.FC = () => {
               <Shield size="1.25rem" />
             </button>
           )}
+          {['developer', 'kargeri'].includes(currentUser.role) && (
+            <button onClick={() => setView('kargeri')} className={`p-3 rounded-app transition-all ${view === 'kargeri' ? 'bg-primary text-white shadow-xl' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}>
+              <LucideIcons.Activity size="1.25rem" />
+            </button>
+          )}
+          {['developer', 'editor'].includes(currentUser.role) && (
+            <button onClick={() => setView('editor')} className={`p-3 rounded-app transition-all ${view === 'editor' ? 'bg-primary text-white shadow-xl' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}>
+              <LucideIcons.Edit3 size="1.25rem" />
+            </button>
+          )}
           {currentUser.role === 'developer' && (
             <button onClick={() => setView('developer')} className={`p-3 rounded-app transition-all ${view === 'developer' ? 'bg-primary text-white shadow-xl' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}>
               <Cpu size="1.25rem" />
@@ -602,6 +613,8 @@ const App: React.FC = () => {
             case 'converter': return <Converter rates={rates} t={t} />;
             case 'favorites': return <FavoritesView rates={rates} metals={metals} cryptoRates={cryptoRates} favorites={favorites} toggleFavorite={toggleFavorite} t={t} config={config} />;
             case 'admin': return <AdminDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} users={users} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateUsers={handleUpdateUsers} onUpdateHeadlines={setHeadlines} t={t} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} />;
+            case 'kargeri': return <KargeriDashboard users={users} t={t} config={config} />;
+            case 'editor': return <EditorDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateHeadlines={setHeadlines} t={t} config={config} onUpdateConfig={setConfig} currentUser={currentUser!} />;
             case 'developer': return <DeveloperView config={config} onUpdateConfig={setConfig} rates={rates} metals={metals} cryptoRates={cryptoRates} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateHeadlines={setHeadlines} t={t} language={language} />;
             case 'settings': return <SettingsView currentUser={currentUser} onUpdateUser={handleUpdateUser} onViewChange={setView} onLogout={() => {setCurrentUser(null); localStorage.removeItem(`${STORAGE_KEY}_user`);}} theme={theme} setTheme={setTheme} language={language} setLanguage={setLanguage} t={t} config={config} onUpdateConfig={setConfig} />;
             default: return <MarketView rates={rates} headlines={headlines} t={t} config={config} favorites={favorites} toggleFavorite={toggleFavorite} />;

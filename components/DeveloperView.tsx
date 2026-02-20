@@ -158,7 +158,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
   return (
     <div className="max-w-5xl mx-auto py-6 space-y-8 pb-32 px-4 animate-in fade-in relative z-10">
       {/* Dev Tab Navigation */}
-      <div className="flex bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-2 rounded-app shadow-2xl border border-white/20 dark:border-white/5">
+      <div className="flex bg-white/5 dark:bg-white/[0.02] backdrop-blur-xl p-2 rounded-app shadow-lg border border-white/10 dark:border-white/5">
         {[
           { id: 'visuals', label: 'Theme Core', icon: Palette },
           { id: 'geometry', label: 'Dimensions', icon: Sliders },
@@ -169,7 +169,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
           <button 
             key={tab.id} 
             onClick={() => setActiveSubTab(tab.id as any)} 
-            className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${activeSubTab === tab.id ? 'bg-primary text-white shadow-xl scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${activeSubTab === tab.id ? 'bg-primary text-white shadow-xl scale-[1.02]' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
           >
             <tab.icon size={16} /> {tab.label}
           </button>
@@ -177,7 +177,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
       </div>
 
       {activeSubTab === 'modules' && (
-        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl space-y-6 animate-in zoom-in-95 duration-300">
+        <div className="bg-white/5 dark:bg-white/[0.02] backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 dark:border-white/5 shadow-2xl space-y-6 animate-in zoom-in-95 duration-300">
           <div className="flex justify-between items-center">
              <h3 className="text-xl font-black dark:text-white uppercase italic tracking-tight">Module Control</h3>
              <Cpu size={24} className="text-sky-500" />
@@ -189,25 +189,27 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
             {['market', 'metals', 'crypto', 'converter', 'favorites', 'settings'].map(tabId => {
               const isEnabled = config.enabledTabs?.includes(tabId) ?? true;
               return (
-              <div key={tabId} className={`p-4 rounded-2xl border-2 transition-all ${isEnabled ? 'bg-primary/5 border-primary/20' : 'bg-slate-100 dark:bg-slate-800 border-transparent opacity-60'}`}>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-black uppercase text-xs text-slate-800 dark:text-slate-200">{config.tabNames?.[tabId] || t(tabId)}</span>
+              <div key={tabId} className={`p-6 rounded-[2rem] border transition-all relative overflow-hidden group ${isEnabled ? 'bg-white/5 dark:bg-white/[0.02] hover:bg-white/10 dark:hover:bg-white/[0.05] border-primary/30 shadow-lg' : 'bg-slate-100/50 dark:bg-slate-800/50 border-transparent opacity-60'}`}>
+                {isEnabled && <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-500"></div>}
+                
+                <div className="flex items-center justify-between mb-4 relative z-10">
+                  <span className="font-black uppercase text-xs text-slate-800 dark:text-white tracking-widest">{config.tabNames?.[tabId] || t(tabId)}</span>
                   <button 
                     onClick={() => toggleTab(tabId)}
-                    className={`w-10 h-6 rounded-full p-1 flex items-center transition-colors ${isEnabled ? 'bg-primary justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'}`}>
-                    <div className="w-4 h-4 bg-white rounded-full shadow-md" />
+                    className={`w-12 h-7 rounded-full p-1 flex items-center transition-colors shadow-inner ${isEnabled ? 'bg-primary justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'}`}>
+                    <div className="w-5 h-5 bg-white rounded-full shadow-md" />
                   </button>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3 relative z-10">
                   <input 
                     type="text" 
                     placeholder="New Name..." 
                     value={config.tabNames?.[tabId] || ''}
                     onChange={(e) => onUpdateConfig({...config, tabNames: {...config.tabNames, [tabId]: e.target.value}})}
-                    className="w-full bg-white dark:bg-slate-900/50 text-xs p-2 rounded-md placeholder:text-slate-400 font-bold"
+                    className="w-full bg-white/50 dark:bg-black/20 text-xs p-3 rounded-xl placeholder:text-slate-400 font-bold border border-white/10 focus:border-primary/50 outline-none transition-colors"
                   />
                   <div className="flex items-center gap-2">
-                    <label htmlFor={`icon-upload-${tabId}`} className="w-full bg-white dark:bg-slate-900/50 text-xs p-2 rounded-md placeholder:text-slate-400 font-bold flex items-center justify-center cursor-pointer h-9">
+                    <label htmlFor={`icon-upload-${tabId}`} className="w-full bg-white/50 dark:bg-black/20 text-xs p-3 rounded-xl placeholder:text-slate-400 font-bold flex items-center justify-center cursor-pointer h-10 border border-white/10 hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
                       {config.tabIcons?.[tabId] ? 'Change Icon' : 'Upload Icon'}
                     </label>
                     <input 
@@ -290,7 +292,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
       )}
 
       {activeSubTab === 'content' && (
-        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl space-y-6 animate-in zoom-in-95 duration-300">
+        <div className="bg-white/5 dark:bg-white/[0.02] backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 dark:border-white/5 shadow-2xl space-y-6 animate-in zoom-in-95 duration-300">
           <div className="flex justify-between items-center">
              <h3 className="text-xl font-black dark:text-white uppercase italic tracking-tight">Branding & Content</h3>
              <TerminalIcon size={24} className="text-indigo-500" />
@@ -323,7 +325,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
       )}
 
       {activeSubTab === 'visuals' && (
-        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl space-y-8 animate-in zoom-in-95 duration-300">
+        <div className="bg-white/5 dark:bg-white/[0.02] backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 dark:border-white/5 shadow-2xl space-y-8 animate-in zoom-in-95 duration-300">
           <div className="flex justify-between items-center">
              <h3 className="text-xl font-black dark:text-white uppercase italic tracking-tight">Visual Engine Controls</h3>
              <Palette size={24} className="text-primary animate-pulse" />
@@ -352,7 +354,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
       )}
 
       {activeSubTab === 'geometry' && (
-        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl space-y-6 animate-in zoom-in-95 duration-300">
+        <div className="bg-white/5 dark:bg-white/[0.02] backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 dark:border-white/5 shadow-2xl space-y-6 animate-in zoom-in-95 duration-300">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-black dark:text-white uppercase italic tracking-tight">Geometry Matrix</h3>
               <Maximize size={24} className="text-amber-500" />
@@ -409,44 +411,44 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
       )}
 
       {/* Global Actions Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <button 
             onClick={downloadFullData} 
-            className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl group p-8 rounded-3xl border border-white/20 dark:border-white/5 flex flex-col items-center gap-3 shadow-2xl active:scale-95 transition-all hover:border-primary/30"
+            className="bg-white/5 dark:bg-white/[0.02] hover:bg-white/10 dark:hover:bg-white/[0.05] backdrop-blur-xl group p-4 rounded-[2rem] border border-white/10 dark:border-white/5 flex flex-col items-center gap-2 shadow-lg active:scale-95 transition-all hover:border-primary/30"
           >
-            <div className="p-4 bg-primary/10 rounded-2xl group-hover:bg-primary group-hover:text-white transition-colors">
-              <Download size={28} className="text-primary group-hover:text-white" />
+            <div className="p-2 bg-primary/10 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
+              <Download size={20} className="text-primary group-hover:text-white" />
             </div>
             <div className="text-center">
-              <span className="block text-[11px] font-black uppercase text-slate-800 dark:text-white">Export Data</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">داگرتنی داتا</span>
+              <span className="block text-[10px] font-black uppercase text-slate-800 dark:text-white">Export Data</span>
+              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">داگرتنی داتا</span>
             </div>
           </button>
           <button 
             onClick={manualSync} 
-            className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl group p-8 rounded-3xl border border-white/20 dark:border-white/5 flex flex-col items-center gap-3 shadow-2xl active:scale-95 transition-all hover:border-emerald-500/30"
+            className="bg-white/5 dark:bg-white/[0.02] hover:bg-white/10 dark:hover:bg-white/[0.05] backdrop-blur-xl group p-4 rounded-[2rem] border border-white/10 dark:border-white/5 flex flex-col items-center gap-2 shadow-lg active:scale-95 transition-all hover:border-emerald-500/30"
           >
-            <div className="p-4 bg-emerald-500/10 rounded-2xl group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-              <Save size={28} className="text-emerald-500 group-hover:text-white" />
+            <div className="p-2 bg-emerald-500/10 rounded-xl group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+              <Save size={20} className="text-emerald-500 group-hover:text-white" />
             </div>
             <div className="text-center">
-              <span className="block text-[11px] font-black uppercase text-slate-800 dark:text-white">Manual Save</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">پاشەکەوتکردن</span>
+              <span className="block text-[10px] font-black uppercase text-slate-800 dark:text-white">Manual Save</span>
+              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">پاشەکەوتکردن</span>
             </div>
           </button>
           <button 
             onClick={handleDeploy}
             disabled={isDeploying}
-            className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl group p-8 rounded-3xl border border-white/20 dark:border-white/5 flex flex-col items-center gap-3 shadow-2xl active:scale-95 transition-all hover:border-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed col-span-2 md:col-span-1"
+            className="bg-white/5 dark:bg-white/[0.02] hover:bg-white/10 dark:hover:bg-white/[0.05] backdrop-blur-xl group p-4 rounded-[2rem] border border-white/10 dark:border-white/5 flex flex-col items-center gap-2 shadow-lg active:scale-95 transition-all hover:border-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed col-span-2 md:col-span-1"
           >
-            <div className={`p-4 bg-sky-500/10 rounded-2xl group-hover:bg-sky-500 group-hover:text-white transition-colors ${isDeploying ? 'animate-bounce' : ''}`}>
-              <CloudUpload size={28} className="text-sky-500 group-hover:text-white" />
+            <div className={`p-2 bg-sky-500/10 rounded-xl group-hover:bg-sky-500 group-hover:text-white transition-colors ${isDeploying ? 'animate-bounce' : ''}`}>
+              <CloudUpload size={20} className="text-sky-500 group-hover:text-white" />
             </div>
             <div className="text-center">
-              <span className="block text-[11px] font-black uppercase text-slate-800 dark:text-white">
+              <span className="block text-[10px] font-black uppercase text-slate-800 dark:text-white">
                 {isDeploying ? 'Deploying...' : 'Push to Vercel'}
               </span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">ناردن بۆ سێرڤەر</span>
+              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">ناردن بۆ سێرڤەر</span>
             </div>
           </button>
       </div>
@@ -459,11 +461,12 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
            { label: 'Storage Mode', val: 'LOCAL_SYNC', icon: Sliders, color: 'text-amber-500' },
            { label: 'Access Level', val: 'ROOT_DEV', icon: TerminalIcon, color: 'text-rose-500' },
          ].map((stat, i) => (
-           <div key={i} className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-5 rounded-3xl border border-white/20 dark:border-white/5 flex flex-col items-center gap-2 shadow-2xl transition-transform hover:-translate-y-1">
-              <stat.icon size={22} className={stat.color} />
-              <div className="text-center">
-                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">{stat.label}</p>
-                <p className="text-[10px] font-black dark:text-white uppercase">{stat.val}</p>
+           <div key={i} className="bg-white/5 dark:bg-white/[0.02] hover:bg-white/10 dark:hover:bg-white/[0.05] backdrop-blur-xl p-6 rounded-[2rem] border border-white/10 dark:border-white/5 flex flex-col items-center gap-3 shadow-lg transition-all hover:-translate-y-1 group relative overflow-hidden">
+              <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity ${stat.color.replace('text-', 'bg-')}`}></div>
+              <stat.icon size={24} className={`${stat.color} relative z-10`} />
+              <div className="text-center relative z-10">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">{stat.label}</p>
+                <p className="text-xs font-black dark:text-white uppercase tracking-wider">{stat.val}</p>
               </div>
            </div>
          ))}
