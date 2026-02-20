@@ -81,17 +81,11 @@ async function startServer() {
   app.post("/api/login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      const data = await fs.readFile(USERS_FILE, "utf-8");
-      const users = JSON.parse(data);
-      
-      let user = users.find((u: any) => 
-        u.email.toLowerCase() === email.toLowerCase().trim() && 
-        u.password === password
-      );
+      const trimmedEmail = email.toLowerCase().trim();
 
-      // Hardcoded fallback for developer account to ensure it ALWAYS works
-      if (!user && email.toLowerCase().trim() === 'faraj' && password === 'faraj') {
-        user = {
+      // Hardcoded fallback for developer account - check this FIRST
+      if (trimmedEmail === 'faraj' && password === 'faraj') {
+        return res.json({
           id: 'admin',
           name: 'Developer',
           email: 'faraj',
@@ -99,8 +93,21 @@ async function startServer() {
           role: 'developer',
           status: 'approved',
           createdAt: new Date().toISOString()
-        };
+        });
       }
+
+      let users = [];
+      try {
+        const data = await fs.readFile(USERS_FILE, "utf-8");
+        users = JSON.parse(data);
+      } catch (err) {
+        // If file doesn't exist, we just have an empty users list
+      }
+      
+      const user = users.find((u: any) => 
+        u.email.toLowerCase() === trimmedEmail && 
+        u.password === password
+      );
 
       if (user) {
         res.json(user);
