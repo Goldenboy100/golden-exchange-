@@ -14,22 +14,26 @@ const USERS_FILE = path.join(DATA_DIR, "users.json");
 async function ensureDataDir() {
   try {
     await fs.mkdir(DATA_DIR, { recursive: true });
+    let users = [];
     try {
-      await fs.access(USERS_FILE);
+      const data = await fs.readFile(USERS_FILE, "utf-8");
+      users = JSON.parse(data);
     } catch {
-      // Initial developer account
-      const initialUsers = [
-        {
-          id: 'admin',
-          name: 'Developer',
-          email: 'faraj',
-          password: 'faraj',
-          role: 'developer',
-          status: 'approved',
-          createdAt: new Date().toISOString()
-        }
-      ];
-      await fs.writeFile(USERS_FILE, JSON.stringify(initialUsers, null, 2));
+      // File doesn't exist or is invalid
+    }
+
+    // Always ensure developer account exists
+    if (!users.some((u: any) => u.email === 'faraj')) {
+      users.push({
+        id: 'admin',
+        name: 'Developer',
+        email: 'faraj',
+        password: 'faraj',
+        role: 'developer',
+        status: 'approved',
+        createdAt: new Date().toISOString()
+      });
+      await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
     }
   } catch (err) {
     console.error("Error initializing data directory:", err);
