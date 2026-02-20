@@ -276,14 +276,14 @@ const App: React.FC = () => {
     setUsers(updatedUsers);
     
     if (isSupabaseConfigured()) {
-      // Upsert all users to Supabase to ensure they are in sync
-      // In a larger app, we'd update only the changed user
+      // Update the entire list to ensure sync
       const { error } = await supabase
         .from('users')
-        .upsert(updatedUsers);
+        .upsert(updatedUsers, { onConflict: 'id' });
       
       if (error) {
         console.error("Supabase sync error:", error);
+        alert("هەڵەیەک لە سارکەردنی داتاکان ڕوویدا: " + error.message);
       }
     }
     

