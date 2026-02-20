@@ -20,6 +20,7 @@ const App: React.FC = () => {
   const STORAGE_KEY = 'golden_v15_data';
 
   const [appState, setAppState] = useState<'welcome' | 'splash' | 'main'>('welcome');
+  const [dbConnected, setDbConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (appState === 'splash') {
@@ -150,6 +151,78 @@ const App: React.FC = () => {
   const [language, setLanguage] = useState<LanguageCode>(() => (localStorage.getItem(`${STORAGE_KEY}_lang`) as LanguageCode) || 'ku');
   const [view, setView] = useState<ViewMode>('market');
 
+  // Fetch all data from Supabase or LocalStorage
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!isSupabaseConfigured()) return;
+
+      try {
+        // Fetch Rates
+        const { data: ratesData, error: ratesError } = await supabase.from('rates').select('*');
+        if (ratesError) throw ratesError;
+        if (ratesData && ratesData.length > 0) setRates(ratesData);
+
+        // Fetch Metals
+        const { data: metalsData } = await supabase.from('metals').select('*');
+        if (metalsData && metalsData.length > 0) setMetals(metalsData);
+
+        // Fetch Crypto
+        const { data: cryptoData } = await supabase.from('crypto').select('*');
+        if (cryptoData && cryptoData.length > 0) setCryptoRates(cryptoData);
+
+        // Fetch News
+        const { data: newsData } = await supabase.from('news').select('*').order('date', { ascending: false });
+        if (newsData && newsData.length > 0) setHeadlines(newsData);
+
+        // Fetch Config
+        const { data: configData } = await supabase.from('config').select('*').single();
+        if (configData) setConfig(configData);
+
+        setDbConnected(true);
+      } catch (err) {
+        console.error("Supabase fetch error:", err);
+        setDbConnected(false);
+      }
+    };
+
+    fetchData();
+
+    // Real-time subscriptions for all tables
+    let channels: any[] = [];
+    if (isSupabaseConfigured()) {
+      const tables = ['rates', 'metals', 'crypto', 'news', 'config'];
+      tables.forEach(table => {
+        const channel = supabase.channel(`public:${table}`)
+          .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
+            fetchData();
+          })
+          .subscribe();
+        channels.push(channel);
+      });
+    }
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
+  }, []);
+
+  // Helper to sync data to Supabase
+  const syncToSupabase = async (table: string, data: any) => {
+    if (!isSupabaseConfigured()) return;
+    
+    try {
+      if (table === 'config') {
+        const { id, ...rest } = data;
+        await supabase.from(table).upsert({ id: 1, ...rest });
+      } else if (Array.isArray(data)) {
+        // For lists, we upsert the whole set
+        await supabase.from(table).upsert(data);
+      }
+    } catch (err) {
+      console.error(`Failed to sync ${table} to Supabase:`, err);
+    }
+  };
+
   const t = useCallback((key: string): string => {
     const langTrans = config.translations?.[language] || TRANSLATIONS_INITIAL[language];
     // Fallback to TRANSLATIONS_INITIAL if the key is missing in the saved config
@@ -162,6 +235,12 @@ const App: React.FC = () => {
   }, [users]);
 
   const handleRegister = async (newUser: User) => {
+    // Check if email already exists locally to prevent duplicates
+    if (users.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+      alert("ئەم ئیمەیڵە پێشتر تۆمار کراوە");
+      return;
+    }
+
     if (isSupabaseConfigured()) {
       const { error } = await supabase
         .from('users')
@@ -354,6 +433,15 @@ const App: React.FC = () => {
       localStorage.setItem(`${STORAGE_KEY}_lang`, language);
       localStorage.setItem(`${STORAGE_KEY}_favorites`, JSON.stringify(favorites));
       if (currentUser) localStorage.setItem(`${STORAGE_KEY}_user`, JSON.stringify(currentUser));
+
+      // Sync to Supabase if admin/developer
+      if (currentUser?.role === 'admin' || currentUser?.role === 'developer') {
+        syncToSupabase('rates', rates);
+        syncToSupabase('metals', metals);
+        syncToSupabase('crypto', cryptoRates);
+        syncToSupabase('news', headlines);
+        syncToSupabase('config', config);
+      }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'QuotaExceededError') {
         alert('بیرگەی ناوخۆیی وێبگەڕ پڕ بووە! تکایە هەندێک داتای بارکراو بسڕەوە یان داتای کەمتر بار بکە (بۆ نموونە، وێنەی بچووکتر).');
@@ -471,8 +559,16 @@ const App: React.FC = () => {
           <div>
             <h1 className="text-xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">{config.appName}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.5em]">{t('last_update')}: {new Date().toLocaleTimeString()}</p>
+              <div className={`w-1.5 h-1.5 rounded-full animate-pulse shadow-sm ${
+                dbConnected === true ? 'bg-emerald-500 shadow-emerald-500/50' : 
+                dbConnected === false ? 'bg-rose-500 shadow-rose-500/50' : 
+                'bg-amber-500 shadow-amber-500/50'
+              }`} />
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.5em]">
+                {dbConnected === true ? 'Cloud Sync Active' : 
+                 dbConnected === false ? 'Offline Mode' : 
+                 'Connecting...'}
+              </p>
             </div>
           </div>
         </div>

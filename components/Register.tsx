@@ -20,6 +20,12 @@ const Register: React.FC<RegisterProps> = ({ users, onRegister, onSwitch, t }) =
     
     const isFirstUser = users.length === 0;
     
+    // Check for duplicate email
+    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+      alert("ئەم ئیمەیڵە پێشتر تۆمار کراوە");
+      return;
+    }
+    
     const newUser: User = {
       id: Math.random().toString(36).substr(2, 9),
       name,

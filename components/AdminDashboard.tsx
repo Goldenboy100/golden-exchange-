@@ -9,7 +9,7 @@ import {
 import { CurrencyRate, MetalRate, CryptoRate, User, Headline, AppConfig } from '../types.ts';
 import { shweService } from '../services/shweService.ts';
 import { INITIAL_RATES, INITIAL_METALS, INITIAL_CRYPTO } from '../constants.tsx';
-import { isSupabaseConfigured } from '../src/lib/supabase';
+import { isSupabaseConfigured, supabase } from '../src/lib/supabase';
 
 interface AdminDashboardProps {
   rates: CurrencyRate[];
@@ -237,7 +237,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     // Admins cannot toggle developers
     if (user.role === 'developer') return;
 
-    const newStatus = user.status === 'approved' ? 'blocked' : 'approved';
+    let newStatus: 'approved' | 'blocked' | 'pending';
+    
+    if (user.status === 'pending') {
+      newStatus = 'approved';
+    } else if (user.status === 'approved') {
+      newStatus = 'blocked';
+    } else {
+      newStatus = 'approved';
+    }
+
     onUpdateUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
   };
 
@@ -431,13 +440,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <td className="p-3 text-center font-black">
                   <div className="flex flex-col items-center gap-1">
                     <span className={`px-2 py-0.5 rounded-md text-[9px] uppercase ${item.role === 'developer' ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{item.role}</span>
-                    <button 
-                      onClick={() => toggleUserStatus(item)}
-                      disabled={item.role === 'developer'}
-                      className={`px-2 py-0.5 rounded-md text-[9px] uppercase transition-colors ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500 hover:bg-rose-500/10 hover:text-rose-500' : (item.status === 'pending' ? 'bg-amber-500/10 text-amber-500 hover:bg-emerald-500/10 hover:text-emerald-500' : 'bg-rose-500/10 text-rose-500 hover:bg-emerald-500/10 hover:text-emerald-500')}`}
-                    >
-                      {item.status === 'approved' ? 'Approved' : (item.status === 'pending' ? 'Pending Approval' : 'Blocked')}
-                    </button>
+                      <button 
+                        onClick={() => toggleUserStatus(item)}
+                        disabled={item.role === 'developer'}
+                        className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase transition-all shadow-sm ${
+                          item.status === 'approved' 
+                            ? 'bg-emerald-500 text-white hover:bg-rose-500' 
+                            : (item.status === 'pending' 
+                                ? 'bg-amber-500 text-white animate-pulse hover:bg-emerald-600' 
+                                : 'bg-rose-500 text-white hover:bg-emerald-600')
+                        }`}
+                      >
+                        {item.status === 'approved' ? 'Approved' : (item.status === 'pending' ? 'Approve Now' : 'Unblock')}
+                      </button>
                   </div>
                 </td>
                 <td className="p-3 text-center space-x-2">
