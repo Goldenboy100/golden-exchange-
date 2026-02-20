@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden exchange | Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Noto+Sans+Arabic:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: 'var(--primary-color)',
+              card: 'var(--card-color)',
+              appBg: 'var(--bg-color)',
+              appText: 'var(--text-color)',
+            },
+            borderRadius: { 'app': 'var(--app-radius)' },
+            keyframes: {
+              shimmer: {
+                '0%': { transform: 'translateX(-200%)' },
+                '100%': { transform: 'translateX(200%)' },
+              }
+            },
+            animation: {
+              shimmer: 'shimmer 2s infinite',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        :root { 
+          --primary-color: #0284c7; 
+          --bg-color: #f8fafc;
+          --card-color: #ffffff;
+          --text-color: #0f172a;
+          --app-font: 'Noto Sans Arabic'; 
+          --app-radius: 16px;
+          --app-font-size: 13px;
+        }
+        body { 
+          font-family: var(--app-font), sans-serif; 
+          background-color: var(--bg-color);
+          color: var(--text-color);
+          font-size: var(--app-font-size);
+          transition: all 0.3s ease;
+        }
+        .dark body { background-color: #0f172a; color: #f8fafc; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .animate-marquee { animation: marquee 25s linear infinite; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.575.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-appBg text-appText overflow-x-hidden">
+    <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

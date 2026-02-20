@@ -1,0 +1,161 @@
+
+import { CurrencyRate, MetalRate, AppConfig, CryptoRate } from './types.ts';
+
+export const TRANSLATIONS_INITIAL = {
+  ku: {
+    currencies: "دراوەکان",
+    metals: "کانزاکان",
+    converter: "بژمێر",
+    settings: "ڕێکخستنەکان",
+    last_update: "نوێکردنەوە",
+    headlines: "هەواڵەکان",
+    market_local: "ناوخۆ",
+    market_transfer: "حەواڵە",
+    market_toman: "تمەن",
+    market_global: "جیهانی",
+    metal_gold: "زێڕ",
+    metal_silver: "زیو",
+    metal_global: "بۆرسە",
+    name_code: "جۆر",
+    sell: "فرۆشتن",
+    buy: "کڕین",
+    no_data: "هیچ نرخێک نییە",
+    amount: "بڕ",
+    from: "لە",
+    to: "بۆ",
+    login: "چوونەژوورەوە",
+    logout: "دەرچوون",
+    preferences: "ڕێکخستن",
+    interface: "ڕووکار",
+    language: "زمان",
+    admin_dashboard: "بەڕێوەبردن",
+    admin_title: "کۆنترۆڵ",
+    admin_desc: "دەستکاری نرخ",
+    developer_mode: "گەشەپێدەر",
+    back: "گەڕانەوە",
+    save: "پاشەکەوت",
+    dark: "تاریک",
+    light: "ڕووناک",
+    system: "سیستەم",
+    paper: "کاغەزی",
+    market_note: "ئەم نرخانە تەنها بۆ زانیارییە.",
+    rate: "نرخ",
+    users: "بەکارهێنەران",
+    appearance: "ڕووکار",
+    font_family: "فۆنت",
+    table_view: "خشتە",
+    grid_view: "تۆڕ",
+    terminal: "تێرمیناڵ",
+    ui_colors: "ڕەنگەکان",
+    copied: "کۆپی کرا",
+    copy: "کۆپی",
+    share: "ناردن",
+    estimated_result: "ئەنجامی خەمڵێنراو",
+    email: "ناوی بەکارهێنەر",
+    password: "وشەی نهێنی",
+    crypto: "دراوە ئەلیکترۆنییەکان",
+    price: "نرخ",
+    change_24h: "گۆڕانکاری ٢٤ کاتژمێر"
+  },
+  ar: {
+    currencies: "العملات",
+    metals: "المعادن",
+    converter: "المحول",
+    settings: "الإعدادات",
+    last_update: "التحديث",
+    market_local: "المحلي",
+    market_transfer: "الحوالات",
+    market_toman: "التومان",
+    market_global: "العالمي",
+    metal_gold: "الذهب",
+    metal_silver: "الفضة",
+    sell: "بيع",
+    buy: "شراء",
+    save: "حفظ",
+    email: "اسم المستخدم",
+    password: "كلمة المرور",
+    crypto: "العملات الرقمية",
+    price: "السعر",
+    change_24h: "تغيير 24 ساعة"
+  },
+  en: {
+    currencies: "Currencies",
+    metals: "Metals",
+    converter: "Converter",
+    settings: "Settings",
+    last_update: "Update",
+    market_local: "Local",
+    market_global: "Global",
+    sell: "Sell",
+    buy: "Buy",
+    save: "Save",
+    email: "Username",
+    password: "Password",
+    crypto: "Crypto",
+    price: "Price",
+    change_24h: "24h Change"
+  }
+};
+
+export const DEFAULT_CONFIG: AppConfig = {
+  appName: 'Golden exchange',
+  primaryColor: '#0284c7', 
+  secondaryColor: '#0f172a',
+  backgroundColor: '#f8fafc',
+  cardColor: '#ffffff',
+  textColor: '#0f172a',
+  borderRadius: 12,
+  fontSize: 12,
+  fontFamily: 'Noto Sans Arabic',
+  layoutMode: 'table',
+  notificationsEnabled: false,
+  translations: TRANSLATIONS_INITIAL
+};
+
+export const INITIAL_RATES: CurrencyRate[] = [
+  // --- LOCAL IRAQ ---
+  { id: 'l1', name: 'دۆلار - بەغدا', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.25, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l2', name: 'دۆلار - هەولێر', code: 'USD/IQD', symbol: 'IQD', buy: 151400, sell: 151900, change24h: 0.32, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l3', name: 'دۆلار - سلێمانی', code: 'USD/IQD', symbol: 'IQD', buy: 151350, sell: 151850, change24h: 0.12, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l4', name: 'دۆلار - کەرکووک', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: -0.05, lastUpdated: new Date().toISOString(), change: 'down', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l5', name: 'دۆلار - بەسرە', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: 0.08, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l6', name: 'دۆلار - دهۆک', code: 'USD/IQD', symbol: 'IQD', buy: 151400, sell: 151900, change24h: 0.15, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l7', name: 'دۆلار - نەجەف', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.05, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l8', name: 'دۆلار - مووسڵ', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: 0.10, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l9', name: 'دۆلار - کەربەلا', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.02, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l10', name: 'دۆلار - ناسریە', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: 0.04, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+
+  // --- TOMAN ---
+  { id: 'tm1', name: 'تمەن بۆ دینار (ملیۆن)', code: 'IRR/IQD', symbol: 'IQD', buy: 22100, sell: 22600, change24h: -1.2, lastUpdated: new Date().toISOString(), change: 'down', flag: 'https://flagcdn.com/w80/ir.png', category: 'toman' },
+  { id: 'tm2', name: 'تمەن - تاران', code: 'USD/IRR', symbol: 'IRR', buy: 68500, sell: 69500, change24h: 2.4, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/ir.png', category: 'toman' },
+
+  // --- GLOBAL ---
+  { id: 'g1', name: 'یۆرۆ بۆ دینار', code: 'EUR/IQD', symbol: 'IQD', buy: 161250, sell: 162750, change24h: 0.45, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/eu.png', category: 'global' },
+  { id: 'g2', name: 'پاوەند بۆ دینار', code: 'GBP/IQD', symbol: 'IQD', buy: 191000, sell: 192500, change24h: 0.55, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/gb.png', category: 'global' },
+  { id: 'g3', name: 'لیرەی تورکی بۆ دینار', code: 'TRY/IQD', symbol: 'IQD', buy: 4400, sell: 4600, change24h: -0.85, lastUpdated: new Date().toISOString(), change: 'down', flag: 'https://flagcdn.com/w80/tr.png', category: 'global' },
+  { id: 'g4', name: 'درهەمی ئیماراتی بۆ دینار', code: 'AED/IQD', symbol: 'IQD', buy: 41150, sell: 41650, change24h: 0.02, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/ae.png', category: 'global' },
+  { id: 'g5', name: 'ڕیاڵی سعوودی بۆ دینار', code: 'SAR/IQD', symbol: 'IQD', buy: 40300, sell: 40800, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/sa.png', category: 'global' },
+  { id: 'g6', name: 'دیناری کوەیتی بۆ دینار', code: 'KWD/IQD', symbol: 'IQD', buy: 492000, sell: 497000, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/kw.png', category: 'global' }
+];
+
+export const INITIAL_METALS: MetalRate[] = [
+  { id: 'm1', name: 'ئۆنسەی جیهانی', code: 'XAU', unit: '$', buy: 2685.20, sell: 2686.50, change24h: 0.45, lastUpdated: new Date().toISOString(), change: 'up', category: 'global', icon: 'https://cdn-icons-png.flaticon.com/512/261/261917.png' },
+  { id: 'm2', name: 'مسقاڵ عەیارە ٢٤', code: '24K', unit: 'د.ع', buy: 555000, sell: 565000, change24h: 1.2, lastUpdated: new Date().toISOString(), change: 'up', category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png' },
+  { id: 'm2_22', name: 'مسقاڵ عەیارە ٢٢', code: '22K', unit: 'د.ع', buy: 510000, sell: 520000, change24h: 0.9, lastUpdated: new Date().toISOString(), change: 'up', category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png' },
+  { id: 'm3', name: 'مسقاڵ عەیارە ٢١', code: '21K', unit: 'د.ع', buy: 485000, sell: 495000, change24h: 0.8, lastUpdated: new Date().toISOString(), change: 'up', category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png' },
+  { id: 'm4', name: 'مسقاڵ عەیارە ١٨', code: '18K', unit: 'د.ع', buy: 415000, sell: 425000, change24h: -0.2, lastUpdated: new Date().toISOString(), change: 'neutral', category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png' },
+  { id: 'm5', name: 'زیوی خاو (گرام)', code: 'Silver', unit: 'د.ع', buy: 1850, sell: 2150, change24h: -1.5, lastUpdated: new Date().toISOString(), change: 'down', category: 'silver', icon: 'https://cdn-icons-png.flaticon.com/512/2418/2418049.png' },
+];
+
+export const INITIAL_CRYPTO: CryptoRate[] = [
+  { id: 'c1', name: 'Bitcoin', symbol: 'BTC', price: 96450.20, change24h: 2.5, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' },
+  { id: 'c2', name: 'Ethereum', symbol: 'ETH', price: 2745.15, change24h: -1.2, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/ethereum-eth-logo.png' },
+  { id: 'c3', name: 'Tether', symbol: 'USDT', price: 1.00, change24h: 0.01, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/tether-usdt-logo.png' },
+  { id: 'c4', name: 'Solana', symbol: 'SOL', price: 185.40, change24h: 5.8, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/solana-sol-logo.png' },
+  { id: 'c5', name: 'Binance Coin', symbol: 'BNB', price: 612.30, change24h: 0.5, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/bnb-bnb-logo.png' },
+  { id: 'c6', name: 'XRP', symbol: 'XRP', price: 2.45, change24h: -3.2, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/xrp-xrp-logo.png' },
+  { id: 'c7', name: 'Cardano', symbol: 'ADA', price: 0.85, change24h: 1.4, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/cardano-ada-logo.png' },
+  { id: 'c8', name: 'Dogecoin', symbol: 'DOGE', price: 0.38, change24h: 12.5, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png' },
+  { id: 'c9', name: 'Polkadot', symbol: 'DOT', price: 7.20, change24h: -0.8, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/polkadot-new-dot-logo.png' },
+  { id: 'c10', name: 'Chainlink', symbol: 'LINK', price: 18.50, change24h: 2.1, lastUpdated: new Date().toISOString(), icon: 'https://cryptologos.cc/logos/chainlink-link-logo.png' },
+];
