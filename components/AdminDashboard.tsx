@@ -4,7 +4,7 @@ import {
   Plus, Trash2, Edit3, X, 
   Newspaper, TrendingUp, Coins, UserCog, 
   Shield, Check, Image as ImageIcon, Link as LinkIcon,
-  RefreshCw, Smartphone, Database
+  RefreshCw, Smartphone, Database, ShieldAlert
 } from 'lucide-react';
 import { CurrencyRate, MetalRate, CryptoRate, User, Headline, AppConfig } from '../types.ts';
 import { shweService } from '../services/shweService.ts';
@@ -61,6 +61,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (isSupabaseConfigured()) {
+        const { error } = await supabase.from('users').select('id').limit(1);
+        if (error) {
+          setDbError(error.message);
+        } else {
+          setDbError(null);
+        }
+      }
+    };
+    checkConnection();
+  }, []);
 
   const handleShweSync = async () => {
     setIsSyncing(true);
@@ -228,6 +243,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto pb-20 animate-in fade-in">
+      {!isSupabaseConfigured() && (
+        <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-app flex items-start gap-3">
+          <ShieldAlert className="text-amber-600 shrink-0 mt-0.5" size={20} />
+          <div className="text-right">
+            <p className="text-sm font-bold text-amber-800 dark:text-amber-400">ئاگاداری: سیستەمی ئۆنلاین چالاک نییە</p>
+            <p className="text-xs text-amber-700 dark:text-amber-500 mt-1">
+              بۆ ئەوەی مۆبایلەکان بەیەکەوە ببەسترێنەوە، دەبێت Supabase چالاک بکەیت. تا ئەوە نەکەیت، داواکارییەکان لە مۆبایلەکانی ترەوە ناگەن بە تۆ.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="bg-card p-4 rounded-app border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-xl ${isSupabaseConfigured() ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400'}`}>
@@ -235,9 +261,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
           <div className="text-right">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Database Status</p>
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
-              {isSupabaseConfigured() ? 'Supabase Cloud (Connected)' : 'Local Storage (Setup Supabase)'}
+            <p className={`text-sm font-bold ${dbError ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>
+              {isSupabaseConfigured() 
+                ? (dbError ? `Error: ${dbError}` : 'Supabase Cloud (Connected)') 
+                : 'Local Storage (Setup Supabase)'}
             </p>
+            {dbError && dbError.includes('row-level security') && (
+              <p className="text-[9px] text-red-400 font-bold mt-1">تکایە RLS لە Supabase بکوژێنەوە (Disable RLS)</p>
+            )}
           </div>
         </div>
         <div className="text-right">
