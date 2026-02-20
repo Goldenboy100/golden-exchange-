@@ -214,8 +214,8 @@ const App: React.FC = () => {
       if (table === 'config') {
         const { id, ...rest } = data;
         await supabase.from(table).upsert({ id: 1, ...rest });
-      } else if (Array.isArray(data)) {
-        // For lists, we upsert the whole set
+      } else if (Array.isArray(data) && data.length > 0) {
+        // Only upsert if there is data to send
         await supabase.from(table).upsert(data);
       }
     } catch (err) {
@@ -275,7 +275,7 @@ const App: React.FC = () => {
   const handleUpdateUsers = async (updatedUsers: User[]) => {
     setUsers(updatedUsers);
     
-    if (isSupabaseConfigured()) {
+    if (isSupabaseConfigured() && updatedUsers.length > 0) {
       // Update the entire list to ensure sync
       const { error } = await supabase
         .from('users')
@@ -283,7 +283,6 @@ const App: React.FC = () => {
       
       if (error) {
         console.error("Supabase sync error:", error);
-        alert("هەڵەیەک لە سارکەردنی داتاکان ڕوویدا: " + error.message);
       }
     }
     
