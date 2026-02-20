@@ -44,8 +44,8 @@ const Register: React.FC<RegisterProps> = ({ users, onRegister, onSwitch, t }) =
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-6 transition-colors">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center p-4 bg-emerald-600 text-white rounded-[2rem] mb-6 shadow-xl">
-            <TrendingUp size={40} />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-600 text-white rounded-[2rem] mb-6 shadow-xl font-black italic tracking-tighter text-3xl">
+            GE
           </div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white italic tracking-tight">{t('register')}</h1>
           <p className="text-slate-500 dark:text-slate-500 font-bold mt-2 uppercase tracking-widest text-[10px]">{t('app_name')}</p>

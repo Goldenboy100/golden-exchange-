@@ -23,76 +23,73 @@ const CryptoView: React.FC<CryptoViewProps> = ({ cryptoRates, t, config, favorit
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cryptoRates.map((crypto) => (
           <div 
             key={crypto.id}
-            className="bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/40 dark:to-slate-900/40 border border-amber-200/50 dark:border-amber-500/20 p-5 rounded-app shadow-sm hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] hover:scale-[1.02] transition-all group relative overflow-hidden"
+            className="bg-white/5 dark:bg-white/[0.02] backdrop-blur-2xl border border-white/10 dark:border-white/5 p-8 rounded-[2.5rem] shadow-2xl hover:bg-white/10 dark:hover:bg-white/[0.05] hover:scale-[1.02] transition-all group relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-amber-400/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-amber-400/20 transition-all"></div>
-            <button 
-              onClick={(e) => { e.stopPropagation(); toggleFavorite(crypto.id); }}
-              className={`absolute top-2 right-2 p-2 rounded-full transition-all z-20 ${favorites.includes(crypto.id) ? 'text-rose-500 scale-110' : 'text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100'}`}
-            >
-              <Star size={16} fill={favorites.includes(crypto.id) ? "currentColor" : "none"} />
-            </button>
+            {/* Background Glow */}
+            <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-500"></div>
             
             <button 
               onClick={(e) => { e.stopPropagation(); toggleFavorite(crypto.id); }}
-              className={`absolute top-2 left-2 p-2 rounded-full transition-all z-20 ${favorites.includes(crypto.id) ? 'text-rose-500 scale-110' : 'text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100'}`}
+              className={`absolute top-4 left-4 p-2 rounded-full transition-all z-20 ${favorites.includes(crypto.id) ? 'text-amber-400 scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'text-slate-500 hover:text-amber-400 opacity-0 group-hover:opacity-100'}`}
             >
-              <Star size={16} fill={favorites.includes(crypto.id) ? "currentColor" : "none"} />
+              <Star size={18} fill={favorites.includes(crypto.id) ? "currentColor" : "none"} />
             </button>
-
-            <div className="flex justify-between items-start mb-4 relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 p-2 flex items-center justify-center group-hover:rotate-12 transition-transform shadow-md">
+            
+            <div className="flex justify-between items-start mb-6 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 p-3 flex items-center justify-center group-hover:rotate-12 transition-transform shadow-2xl relative">
+                  <div className="absolute inset-0 bg-primary blur-xl opacity-20 rounded-full group-hover:opacity-40 transition-opacity"></div>
                   <img 
                     src={crypto.icon} 
                     alt={crypto.name} 
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain relative z-10"
                     referrerPolicy="no-referrer"
                   />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-900 z-20 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                 </div>
                 <div>
-                  <h3 className="font-black text-slate-900 dark:text-amber-50 tracking-tight">{crypto.name}</h3>
-                  <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">{crypto.symbol}</p>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight group-hover:text-primary transition-colors">{crypto.name}</h3>
+                  <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mt-1">{crypto.symbol}</p>
                 </div>
               </div>
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black ${
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black ${
                 crypto.change24h > 0 
-                  ? 'bg-emerald-500/10 text-emerald-600' 
+                  ? 'bg-emerald-500/10 text-emerald-400' 
                   : crypto.change24h < 0 
-                    ? 'bg-rose-500/10 text-rose-600' 
+                    ? 'bg-rose-500/10 text-rose-400' 
                     : 'bg-slate-500/10 text-slate-500'
               }`}>
-                {crypto.change24h > 0 ? <TrendingUp size={12} /> : crypto.change24h < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
+                {crypto.change24h > 0 ? <TrendingUp size={14} /> : crypto.change24h < 0 ? <TrendingDown size={14} /> : <Minus size={14} />}
                 {Math.abs(crypto.change24h)}%
               </div>
             </div>
 
             <div className="flex justify-between items-end relative z-10">
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('price')}</p>
-                <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter drop-shadow-sm">
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 opacity-50">{t('price')}</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter drop-shadow-md group-hover:scale-105 transition-transform">
                   ${crypto.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t('last_update')}</p>
-                <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 opacity-50">{t('last_update')}</p>
+                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 italic">
                   {new Date(crypto.lastUpdated).toLocaleTimeString()}
                 </p>
               </div>
             </div>
 
             {/* Sparkline simulation */}
-            <div className="mt-4 h-8 w-full flex items-end gap-0.5 opacity-30 group-hover:opacity-60 transition-opacity relative z-10">
-              {[...Array(20)].map((_, i) => (
+            <div className="mt-6 h-10 w-full flex items-end gap-1 opacity-20 group-hover:opacity-40 transition-opacity relative z-10">
+              {[...Array(24)].map((_, i) => (
                 <div 
                   key={i} 
                   className={`flex-1 rounded-t-sm ${crypto.change24h > 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}
-                  style={{ height: `${Math.random() * 100}%` }}
+                  style={{ height: `${20 + Math.random() * 80}%` }}
                 />
               ))}
             </div>

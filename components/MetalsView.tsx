@@ -117,24 +117,29 @@ const MetalsView: React.FC<MetalsViewProps> = ({ metals, t, currentUser, config,
           {filteredMetals.length > 0 ? filteredMetals.map((metal, idx) => (
             <div 
               key={metal.id} 
-              className={`grid grid-cols-12 gap-2 p-6 items-center transition-all bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/40 dark:to-slate-900/40 border border-amber-200/50 dark:border-amber-500/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] rounded-2xl mb-3 mx-2 group relative`}
+              className={`grid grid-cols-12 gap-2 p-8 items-center transition-all bg-white/5 dark:bg-white/[0.02] hover:bg-white/10 dark:hover:bg-white/[0.05] border border-white/10 dark:border-white/5 rounded-[2.5rem] mb-4 mx-3 group relative overflow-hidden shadow-xl`}
             >
+              {/* Background Glow */}
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-all duration-500"></div>
+
               <button 
                 onClick={(e) => { e.stopPropagation(); toggleFavorite(metal.id); }}
-                className={`absolute top-2 left-2 p-2 rounded-full transition-all z-20 ${favorites.includes(metal.id) ? 'text-rose-500 scale-110' : 'text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100'}`}
+                className={`absolute top-4 left-4 p-2 rounded-full transition-all z-20 ${favorites.includes(metal.id) ? 'text-amber-400 scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'text-slate-500 hover:text-amber-400 opacity-0 group-hover:opacity-100'}`}
               >
-                <Star size={16} fill={favorites.includes(metal.id) ? "currentColor" : "none"} />
+                <Star size={18} fill={favorites.includes(metal.id) ? "currentColor" : "none"} />
               </button>
-              <div className="col-span-6 flex items-center gap-4 pl-6">
-                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-200 dark:border-amber-700 shadow-lg shrink-0 bg-amber-50 dark:bg-amber-900/20 p-2 group-hover:scale-110 transition-transform relative">
-                  <div className="absolute inset-0 bg-amber-400 blur-md opacity-20 rounded-full"></div>
+
+              <div className="col-span-6 flex items-center gap-5 pl-8">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border border-white/20 shadow-2xl shrink-0 bg-white/5 p-3 group-hover:scale-110 transition-transform duration-500 relative">
+                  <div className="absolute inset-0 bg-amber-400 blur-xl opacity-20 rounded-full group-hover:opacity-40 transition-opacity"></div>
                   <img src={metal.icon} alt={metal.code} className="w-full h-full object-contain relative z-10" />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-900 z-20 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-lg font-black text-slate-900 dark:text-amber-50 truncate leading-tight mb-1 italic tracking-tight">{metal.name}</span>
+                  <span className="text-xl font-black text-slate-900 dark:text-white truncate leading-tight mb-1.5 italic tracking-tight group-hover:text-amber-400 transition-colors">{metal.name}</span>
                   <div className="flex items-center gap-2">
-                     <span className="text-[9px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/10 shadow-sm">{metal.code}</span>
-                     <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black ${metal.change24h && metal.change24h > 0 ? 'text-emerald-600 bg-emerald-500/10' : 'text-rose-600 bg-rose-500/10'}`}>
+                     <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-[0.2em] bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/10 shadow-sm">{metal.code}</span>
+                     <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black ${metal.change24h && metal.change24h > 0 ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'}`}>
                         {metal.change24h ? `${metal.change24h > 0 ? '▲' : '▼'} ${Math.abs(metal.change24h)}%` : '—'}
                      </div>
                   </div>
@@ -142,17 +147,17 @@ const MetalsView: React.FC<MetalsViewProps> = ({ metals, t, currentUser, config,
               </div>
 
               <div className="col-span-3 flex flex-col items-center justify-center">
-                <span className="text-xl md:text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums tracking-tighter drop-shadow-sm">
+                <span className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tabular-nums tracking-tighter drop-shadow-md group-hover:scale-105 transition-transform">
                   {metal.buy.toLocaleString()}
                 </span>
-                <span className="text-[8px] font-black text-slate-400 uppercase mt-0.5 tracking-wider">{metal.unit} / BUY</span>
+                <span className="text-[9px] font-black text-slate-500 uppercase mt-1.5 tracking-[0.2em] opacity-50">{metal.unit} / BUY</span>
               </div>
 
               <div className="col-span-3 flex flex-col items-center justify-center">
-                <span className="text-xl md:text-2xl font-black text-rose-600 dark:text-rose-400 tabular-nums tracking-tighter drop-shadow-sm">
+                <span className="text-2xl md:text-3xl font-black text-amber-500 tabular-nums tracking-tighter drop-shadow-md group-hover:scale-105 transition-transform">
                   {metal.sell.toLocaleString()}
                 </span>
-                <span className="text-[8px] font-black text-slate-400 uppercase mt-0.5 tracking-wider">{metal.unit} / SELL</span>
+                <span className="text-[9px] font-black text-slate-500 uppercase mt-1.5 tracking-[0.2em] opacity-50">{metal.unit} / SELL</span>
               </div>
             </div>
           )) : (

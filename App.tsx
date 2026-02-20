@@ -421,6 +421,7 @@ const App: React.FC = () => {
       root.style.setProperty('--card-color', theme === 'dark' ? '#1e293b' : config.cardColor || '#ffffff');
       root.style.setProperty('--app-radius', `${config.borderRadius}px`);
       root.style.setProperty('--app-font-size', `${config.fontSize}px`);
+      root.style.setProperty('--app-font', config.fontFamily || "'Noto Sans Arabic', sans-serif");
       root.style.fontSize = `${config.fontSize}px`;
       
       localStorage.setItem(`${STORAGE_KEY}_rates`, JSON.stringify(rates));
@@ -474,7 +475,9 @@ const App: React.FC = () => {
       <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
         <div className="mb-8 relative">
           <div className="absolute inset-0 bg-amber-500/20 blur-3xl rounded-full animate-pulse"></div>
-          <Shield size="5rem" className="text-amber-400 relative z-10 drop-shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-600 flex items-center justify-center text-slate-950 text-4xl font-black italic tracking-tighter shadow-[0_0_30px_rgba(212,175,55,0.4)] relative z-10 border-2 border-white/20">
+            GE
+          </div>
         </div>
         <h1 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight">
           بەخێر بێن بۆ <span className="text-amber-400">Golden Exchange</span>
@@ -552,8 +555,8 @@ const App: React.FC = () => {
 
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-white/20 dark:border-white/5 px-6 py-4 flex justify-between items-center shadow-lg relative">
         <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setView('market')}>
-          <div className="w-10 h-10 rounded-app bg-primary flex items-center justify-center text-white shadow-xl group-hover:scale-105 transition-transform">
-            <TrendingUp size="1.5rem" />
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-xl group-hover:scale-105 transition-transform font-black italic tracking-tighter text-lg border border-white/10">
+            GE
           </div>
           <div>
             <h1 className="text-xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">{config.appName}</h1>

@@ -77,33 +77,42 @@ const MarketView: React.FC<MarketViewProps> = ({ rates, headlines, t, favorites,
         </div>
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
           {filteredRates.length > 0 ? filteredRates.map((rate) => (
-            <div key={rate.id} className="grid grid-cols-12 p-5 items-center bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/40 dark:to-slate-900/40 border border-amber-200/50 dark:border-amber-500/20 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] transition-all rounded-2xl mb-2 mx-2 relative group">
+            <div key={rate.id} className="grid grid-cols-12 p-6 items-center bg-white/5 dark:bg-white/[0.02] hover:bg-white/10 dark:hover:bg-white/[0.05] transition-all mb-3 mx-3 rounded-[2rem] border border-white/10 dark:border-white/5 group relative overflow-hidden">
+              {/* Background Glow */}
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-500"></div>
+              
               <button 
                 onClick={(e) => { e.stopPropagation(); toggleFavorite(rate.id); }}
-                className={`absolute top-2 left-2 p-2 rounded-full transition-all z-20 ${favorites.includes(rate.id) ? 'text-rose-500 scale-110' : 'text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100'}`}
+                className={`absolute top-4 left-4 p-2 rounded-full transition-all z-20 ${favorites.includes(rate.id) ? 'text-amber-400 scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'text-slate-500 hover:text-amber-400 opacity-0 group-hover:opacity-100'}`}
               >
-                <Star size={16} fill={favorites.includes(rate.id) ? "currentColor" : "none"} />
+                <Star size={18} fill={favorites.includes(rate.id) ? "currentColor" : "none"} />
               </button>
-              <div className="col-span-6 flex items-center gap-3 pl-6">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-amber-400 blur-md opacity-20 rounded-full"></div>
-                  <img src={rate.flag} alt={rate.code} className="w-12 h-12 rounded-full object-cover shadow-lg border-2 border-amber-100 dark:border-amber-900/50 relative z-10" referrerPolicy="no-referrer" />
+
+              <div className="col-span-6 flex items-center gap-4 pl-8">
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 bg-primary blur-xl opacity-20 rounded-full group-hover:opacity-40 transition-opacity"></div>
+                  <img src={rate.flag} alt={rate.code} className="w-14 h-14 rounded-2xl object-cover shadow-2xl border border-white/20 relative z-10 group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-900 z-20 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-black text-slate-900 dark:text-amber-50 truncate tracking-tight">{rate.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[9px] font-black text-amber-700 dark:text-amber-400 uppercase bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/10">{rate.code}</span>
-                    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black ${rate.change24h && rate.change24h > 0 ? 'text-emerald-600 bg-emerald-500/10' : 'text-rose-600 bg-rose-500/10'}`}>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white truncate tracking-tight group-hover:text-primary transition-colors">{rate.name}</h3>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">{rate.code}</span>
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black ${rate.change24h && rate.change24h > 0 ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'}`}>
                        {rate.change24h && rate.change24h > 0 ? '▲' : '▼'} {rate.change24h ? `${Math.abs(rate.change24h)}%` : '0%'}
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="col-span-3 text-center">
-                <span className="text-lg font-black text-blue-600 dark:text-blue-400 tabular-nums drop-shadow-sm">{rate.buy.toLocaleString()}</span>
+
+              <div className="col-span-3 text-center flex flex-col items-center">
+                <span className="text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tighter drop-shadow-md group-hover:scale-105 transition-transform">{rate.buy.toLocaleString()}</span>
+                <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1 opacity-50">Buy / کڕین</span>
               </div>
-              <div className="col-span-3 text-center">
-                <span className="text-lg font-black text-rose-600 dark:text-rose-400 tabular-nums drop-shadow-sm">{rate.sell.toLocaleString()}</span>
+
+              <div className="col-span-3 text-center flex flex-col items-center">
+                <span className="text-2xl font-black text-primary tabular-nums tracking-tighter drop-shadow-md group-hover:scale-105 transition-transform">{rate.sell.toLocaleString()}</span>
+                <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1 opacity-50">Sell / فرۆشتن</span>
               </div>
             </div>
           )) : (
