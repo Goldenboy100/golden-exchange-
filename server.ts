@@ -18,12 +18,14 @@ async function ensureDataDir() {
     try {
       const data = await fs.readFile(USERS_FILE, "utf-8");
       users = JSON.parse(data);
+      if (!Array.isArray(users)) users = [];
     } catch {
-      // File doesn't exist or is invalid
+      users = [];
     }
 
     // Always ensure developer account exists
-    if (!users.some((u: any) => u.email === 'faraj')) {
+    if (!Array.isArray(users) || !users.some((u: any) => u.email === 'faraj')) {
+      if (!Array.isArray(users)) users = [];
       users.push({
         id: 'admin',
         name: 'Developer',
@@ -58,20 +60,25 @@ async function startServer() {
   app.get("/api/users", async (req, res) => {
     try {
       const data = await fs.readFile(USERS_FILE, "utf-8");
-      res.json(JSON.parse(data));
+      const users = JSON.parse(data);
+      res.json(Array.isArray(users) ? users : []);
     } catch (err) {
-      res.status(500).json({ error: "Failed to read users" });
+      res.json([]);
     }
   });
 
   app.post("/api/users", async (req, res) => {
     try {
       const newUser = req.body;
-      const data = await fs.readFile(USERS_FILE, "utf-8");
-      const users = JSON.parse(data);
+      let users = [];
+      try {
+        const data = await fs.readFile(USERS_FILE, "utf-8");
+        users = JSON.parse(data);
+        if (!Array.isArray(users)) users = [];
+      } catch (e) {}
       
       // Check if user exists
-      if (users.some((u: any) => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+      if (users.some((u: any) => u.email && u.email.toLowerCase() === newUser.email.toLowerCase())) {
         return res.status(400).json({ error: "User already exists" });
       }
 

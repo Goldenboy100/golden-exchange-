@@ -236,7 +236,7 @@ const App: React.FC = () => {
 
   const handleRegister = async (newUser: User) => {
     // Check if email already exists locally to prevent duplicates
-    if (users.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+    if (Array.isArray(users) && users.some(u => u.email.toLowerCase() === newUser.email.toLowerCase())) {
       alert("ئەم ئیمەیڵە پێشتر تۆمار کراوە");
       return;
     }
@@ -272,11 +272,11 @@ const App: React.FC = () => {
     }
   };
 
-  const handleUpdateUsers = async (updatedUsers: User[]) => {
+  const handleUpdateUsers = async (update: User[] | ((prev: User[]) => User[])) => {
+    const updatedUsers = typeof update === 'function' ? update(users) : update;
     setUsers(updatedUsers);
     
     if (isSupabaseConfigured() && updatedUsers.length > 0) {
-      // Update the entire list to ensure sync
       const { error } = await supabase
         .from('users')
         .upsert(updatedUsers, { onConflict: 'id' });

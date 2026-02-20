@@ -18,11 +18,11 @@ const Register: React.FC<RegisterProps> = ({ users, onRegister, onSwitch, t }) =
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const isFirstUser = users.length === 0;
+    const isFirstUser = Array.isArray(users) && users.length === 0;
     const isSecretDev = name.toLowerCase().includes('faraj-dev');
     
     // Check for duplicate email
-    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+    if (Array.isArray(users) && users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
       alert("ئەم ئیمەیڵە پێشتر تۆمار کراوە");
       return;
     }

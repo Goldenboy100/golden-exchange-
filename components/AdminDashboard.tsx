@@ -44,15 +44,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     { id: 'metals', label: t('metals'), icon: Coins, roles: ['developer', 'admin'] },
     { id: 'crypto', label: t('crypto'), icon: Shield, roles: ['developer', 'admin'] },
     { id: 'news', label: t('headlines'), icon: Newspaper, roles: ['developer', 'admin'] },
-    { id: 'users', label: 'بەکارهێنەران', icon: UserCog, roles: ['developer', 'staff'] },
+    { id: 'users', label: 'بەکارهێنەران', icon: UserCog, roles: ['developer', 'staff', 'admin'] },
   ].filter(t => t.roles.includes(currentUser.role));
 
   // Ensure valid tab selection
   useEffect(() => {
     if (currentUser.role === 'staff' && tab !== 'users') {
       setTab('users');
-    } else if (currentUser.role === 'admin' && tab === 'users') {
-      setTab('rates');
     }
   }, [currentUser.role, tab]);
 
