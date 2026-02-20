@@ -67,7 +67,21 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRegister, t, config }) => {
           setError(err.error || 'زانیارییەکان هەڵەیە!');
         }
       } catch (err) {
-        setError('پەیوەندی لەگەڵ سێرڤەر نییە!');
+        console.error("Login error:", err);
+        // Fallback for developer account if server is down
+        if (email.toLowerCase().trim() === 'faraj' && password === 'faraj') {
+          onLogin({
+            id: 'admin',
+            name: 'Developer',
+            email: 'faraj',
+            password: 'faraj',
+            role: 'developer',
+            status: 'approved',
+            createdAt: new Date().toISOString()
+          });
+        } else {
+          setError('پەیوەندی لەگەڵ سێرڤەر نییە! تکایە لاپەڕەکە ڕیفرێش بکەرەوە.');
+        }
       }
     }
   };
