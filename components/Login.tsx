@@ -6,7 +6,6 @@ import { User } from '../types';
 import { AppConfig } from '../types';
 
 interface LoginProps {
-  users: User[];
   onLogin: (user: User) => void;
   onRegister: (user: User) => void;
   onSwitch: () => void;
@@ -14,7 +13,7 @@ interface LoginProps {
   config: AppConfig;
 }
 
-const Login: React.FC<LoginProps> = ({ users, onLogin, onRegister, t, config }) => {
+const Login: React.FC<LoginProps> = ({ onLogin, onRegister, t, config }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,17 +21,12 @@ const Login: React.FC<LoginProps> = ({ users, onLogin, onRegister, t, config }) 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     
     if (isRegistering) {
-      if (users.some(u => u.email.toLowerCase() === email.toLowerCase().trim())) {
-        setError('ئەم ئیمەیڵە پێشتر بەکارهاتووە!');
-        return;
-      }
-      
       const newUser: User = {
         id: `u_${Date.now()}`,
         name,
@@ -50,20 +44,30 @@ const Login: React.FC<LoginProps> = ({ users, onLogin, onRegister, t, config }) 
       setPassword('');
       setName('');
     } else {
-      const user = users.find(u => u.email.toLowerCase() === email.toLowerCase().trim() && u.password === password);
-      
-      if (user) {
-        if (user.status === 'pending') {
-          setError('هەژمارەکەت هێشتا پەسەند نەکراوە. تکایە چاوەڕێ بە.');
-        } else if (user.status === 'blocked') {
-          setError('هەژمارەکەت ڕاگیراوە!');
-        } else if (user.expiresAt && new Date(user.expiresAt) < new Date()) {
-          setError('کاتەکەت تەواو بووە! تکایە پەیوەندی بە ئەدمینەوە بکە.');
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (response.ok) {
+          const user = await response.json();
+          if (user.status === 'pending') {
+            setError('هەژمارەکەت هێشتا پەسەند نەکراوە. تکایە چاوەڕێ بە.');
+          } else if (user.status === 'blocked') {
+            setError('هەژمارەکەت ڕاگیراوە!');
+          } else if (user.expiresAt && new Date(user.expiresAt) < new Date()) {
+            setError('کاتەکەت تەواو بووە! تکایە پەیوەندی بە ئەدمینەوە بکە.');
+          } else {
+            onLogin(user);
+          }
         } else {
-          onLogin(user);
+          const err = await response.json();
+          setError(err.error || 'زانیارییەکان هەڵەیە!');
         }
-      } else {
-        setError('زانیارییەکان هەڵەیە!');
+      } catch (err) {
+        setError('پەیوەندی لەگەڵ سێرڤەر نییە!');
       }
     }
   };

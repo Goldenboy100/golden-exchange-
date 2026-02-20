@@ -366,7 +366,7 @@ const App: React.FC = () => {
   };
 
   if (!currentUser) {
-    return <Login users={users} onLogin={setCurrentUser} onRegister={handleRegister} onSwitch={()=>{}} t={t} config={config} />; 
+    return <Login onLogin={setCurrentUser} onRegister={handleRegister} onSwitch={()=>{}} t={t} config={config} />; 
   }
 
   return (
@@ -428,7 +428,7 @@ const App: React.FC = () => {
 
       <main className="flex-1 overflow-y-auto pb-32 pt-6 px-4 md:px-12 no-scrollbar">
         {(() => {
-          if (!currentUser && (view === 'admin' || view === 'developer' || view === 'settings')) return <Login onLogin={setCurrentUser} users={users} t={t} />;
+          if (!currentUser && (view === 'admin' || view === 'developer' || view === 'settings')) return <Login onLogin={setCurrentUser} onRegister={handleRegister} t={t} config={config} onSwitch={()=>{}} />;
           switch (view) {
             case 'market': return <MarketView rates={rates} headlines={headlines} t={t} config={config} favorites={favorites} toggleFavorite={toggleFavorite} />;
             case 'metals': return <MetalsView metals={metals} t={t} language={language} currentUser={currentUser} config={config} favorites={favorites} toggleFavorite={toggleFavorite} />;

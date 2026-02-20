@@ -78,6 +78,40 @@ async function startServer() {
     }
   });
 
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const data = await fs.readFile(USERS_FILE, "utf-8");
+      const users = JSON.parse(data);
+      
+      let user = users.find((u: any) => 
+        u.email.toLowerCase() === email.toLowerCase().trim() && 
+        u.password === password
+      );
+
+      // Hardcoded fallback for developer account to ensure it ALWAYS works
+      if (!user && email.toLowerCase().trim() === 'faraj' && password === 'faraj') {
+        user = {
+          id: 'admin',
+          name: 'Developer',
+          email: 'faraj',
+          password: 'faraj',
+          role: 'developer',
+          status: 'approved',
+          createdAt: new Date().toISOString()
+        };
+      }
+
+      if (user) {
+        res.json(user);
+      } else {
+        res.status(401).json({ error: "زانیارییەکان هەڵەیە!" });
+      }
+    } catch (err) {
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
   app.put("/api/users", async (req, res) => {
     try {
       const updatedUsers = req.body;
