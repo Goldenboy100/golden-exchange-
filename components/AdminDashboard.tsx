@@ -4,11 +4,12 @@ import {
   Plus, Trash2, Edit3, X, 
   Newspaper, TrendingUp, Coins, UserCog, 
   Shield, Check, Image as ImageIcon, Link as LinkIcon,
-  RefreshCw, Smartphone
+  RefreshCw, Smartphone, Database
 } from 'lucide-react';
 import { CurrencyRate, MetalRate, CryptoRate, User, Headline, AppConfig } from '../types.ts';
 import { shweService } from '../services/shweService.ts';
 import { INITIAL_RATES, INITIAL_METALS, INITIAL_CRYPTO } from '../constants.tsx';
+import { isSupabaseConfigured } from '../src/lib/supabase';
 
 interface AdminDashboardProps {
   rates: CurrencyRate[];
@@ -228,6 +229,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   return (
     <div className="space-y-4 max-w-5xl mx-auto pb-20 animate-in fade-in">
       <div className="bg-card p-4 rounded-app border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-xl ${isSupabaseConfigured() ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400'}`}>
+            <Database size={20} />
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Database Status</p>
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+              {isSupabaseConfigured() ? 'Supabase Cloud (Connected)' : 'Local Storage (Setup Supabase)'}
+            </p>
+          </div>
+        </div>
         <div className="text-right">
           <h2 className="text-xl font-black flex items-center gap-2 dark:text-white uppercase italic">
             <Shield size={20} className="text-primary" /> {t('admin_title')}
@@ -369,7 +381,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </td>
               </tr>
             ))}
-            {tab === 'users' && users.map(item => (
+            {tab === 'users' && Array.isArray(users) && users.map(item => (
               <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                 <td className="p-3">
                   <div className="flex items-center gap-3">

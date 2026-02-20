@@ -14,6 +14,7 @@ import SettingsView from './components/SettingsView.tsx';
 import DeveloperView from './components/DeveloperView.tsx';
 import FavoritesView from './components/FavoritesView.tsx';
 import Login from './components/Login.tsx';
+import { supabase, isSupabaseConfigured } from './src/lib/supabase';
 
 const App: React.FC = () => {
   const STORAGE_KEY = 'golden_v15_data';
@@ -77,14 +78,28 @@ const App: React.FC = () => {
 
   const [users, setUsers] = useState<User[]>([]);
 
-  // Fetch users from API on mount and poll for updates
+  // Fetch users from Supabase or API
   useEffect(() => {
     const fetchUsers = async () => {
+      if (isSupabaseConfigured()) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*');
+        
+        if (!error && data && Array.isArray(data)) {
+          setUsers(data);
+          return;
+        }
+      }
+
+      // Fallback to local API if Supabase is not configured or fails
       try {
         const response = await fetch('/api/users');
         if (response.ok) {
           const data = await response.json();
-          setUsers(data);
+          if (Array.isArray(data)) {
+            setUsers(data);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch users:", err);
@@ -92,12 +107,34 @@ const App: React.FC = () => {
     };
     
     fetchUsers();
-    // Poll every 5 seconds to keep all devices in sync
-    const interval = setInterval(fetchUsers, 5000);
-    return () => clearInterval(interval);
+    
+    // Real-time subscription for Supabase
+    let subscription: any;
+    if (isSupabaseConfigured()) {
+      subscription = supabase
+        .channel('public:users')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+          fetchUsers();
+        })
+        .subscribe();
+    }
+
+    // Poll as backup if not using Supabase
+    const interval = setInterval(fetchUsers, 10000);
+    
+    return () => {
+      clearInterval(interval);
+      if (subscription) supabase.removeChannel(subscription);
+    };
   }, []);
 
   const saveUsersToApi = async (updatedUsers: User[]) => {
+    if (isSupabaseConfigured()) {
+      // In Supabase, we usually update individual records, 
+      // but for this simple app, we'll sync the whole state if needed
+      // or rely on individual update calls.
+      return;
+    }
     try {
       await fetch('/api/users', {
         method: 'PUT',
@@ -125,6 +162,20 @@ const App: React.FC = () => {
   }, [users]);
 
   const handleRegister = async (newUser: User) => {
+    if (isSupabaseConfigured()) {
+      const { error } = await supabase
+        .from('users')
+        .insert([newUser]);
+      
+      if (error) {
+        alert("هەڵەیەک ڕوویدا لە کاتی تۆمارکردن");
+        console.error(error);
+      } else {
+        setUsers(prev => [...prev, newUser]);
+      }
+      return;
+    }
+
     try {
       const response = await fetch('/api/users', {
         method: 'POST',
@@ -142,8 +193,21 @@ const App: React.FC = () => {
     }
   };
 
-  const handleUpdateUsers = (updatedUsers: User[]) => {
+  const handleUpdateUsers = async (updatedUsers: User[]) => {
     setUsers(updatedUsers);
+    
+    if (isSupabaseConfigured()) {
+      // Upsert all users to Supabase to ensure they are in sync
+      // In a larger app, we'd update only the changed user
+      const { error } = await supabase
+        .from('users')
+        .upsert(updatedUsers);
+      
+      if (error) {
+        console.error("Supabase sync error:", error);
+      }
+    }
+    
     saveUsersToApi(updatedUsers);
   };
 

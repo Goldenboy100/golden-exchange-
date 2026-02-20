@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, Key, Mail, ShieldAlert, UserPlus, ArrowRight } from 'lucide-react';
 import { User } from '../types';
+import { supabase, isSupabaseConfigured } from '../src/lib/supabase';
 
 import { AppConfig } from '../types';
 
@@ -45,6 +46,29 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRegister, t, config }) => {
       setName('');
     } else {
       try {
+        if (isSupabaseConfigured()) {
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email.toLowerCase().trim())
+            .eq('password', password)
+            .single();
+          
+          if (!error && data) {
+            const user = data;
+            if (user.status === 'pending') {
+              setError('هەژمارەکەت هێشتا پەسەند نەکراوە. تکایە چاوەڕێ بە.');
+            } else if (user.status === 'blocked') {
+              setError('هەژمارەکەت ڕاگیراوە!');
+            } else if (user.expiresAt && new Date(user.expiresAt) < new Date()) {
+              setError('کاتەکەت تەواو بووە! تکایە پەیوەندی بە ئەدمینەوە بکە.');
+            } else {
+              onLogin(user);
+            }
+            return;
+          }
+        }
+
         const response = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
