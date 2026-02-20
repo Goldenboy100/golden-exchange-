@@ -75,33 +75,73 @@ const App: React.FC = () => {
     );
   };
 
-  const [users, setUsers] = useState<User[]>(() => {
-    try { 
-      const saved = localStorage.getItem(`${STORAGE_KEY}_users_list`); 
-      const list = saved ? JSON.parse(saved) : [];
-      // Ensure admin exists
-      if (!list.some((u: User) => u.role === 'developer')) {
-        list.push({id:'admin', name:'Developer', email:'faraj', password:'faraj', role:'developer', status:'approved', createdAt: new Date().toISOString()});
+  const [users, setUsers] = useState<User[]>([]);
+
+  // Fetch users from API on mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('/api/users');
+        if (response.ok) {
+          const data = await response.json();
+          setUsers(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
       }
-      return list;
-    } catch { 
-      return [{id:'admin', name:'Developer', email:'faraj', password:'faraj', role:'developer', status:'approved', createdAt: new Date().toISOString()}]; 
+    };
+    fetchUsers();
+  }, []);
+
+  const saveUsersToApi = async (updatedUsers: User[]) => {
+    try {
+      await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedUsers)
+      });
+    } catch (err) {
+      console.error("Failed to save users to API:", err);
     }
-  });
+  };
 
   const [theme, setTheme] = useState<ThemeMode>(() => (localStorage.getItem(`${STORAGE_KEY}_theme`) as ThemeMode) || 'dark');
   const [language, setLanguage] = useState<LanguageCode>(() => (localStorage.getItem(`${STORAGE_KEY}_lang`) as LanguageCode) || 'ku');
   const [view, setView] = useState<ViewMode>('market');
 
   const t = useCallback((key: string): string => {
-    const langTrans = config.translations[language] || TRANSLATIONS_INITIAL[language];
-    return (langTrans as any)[key] || key;
+    const langTrans = config.translations?.[language] || TRANSLATIONS_INITIAL[language];
+    // Fallback to TRANSLATIONS_INITIAL if the key is missing in the saved config
+    return (langTrans as any)[key] || (TRANSLATIONS_INITIAL[language] as any)[key] || key;
   }, [language, config]);
 
-  // Update users in local storage
+  // Update users in local storage (keeping as secondary backup)
   useEffect(() => {
     localStorage.setItem(`${STORAGE_KEY}_users_list`, JSON.stringify(users));
   }, [users]);
+
+  const handleRegister = async (newUser: User) => {
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      });
+      if (response.ok) {
+        setUsers(prev => [...prev, newUser]);
+      } else {
+        const err = await response.json();
+        alert(err.error || "تۆمارکردن سەرکەوتوو نەبوو");
+      }
+    } catch (err) {
+      console.error("Registration failed:", err);
+    }
+  };
+
+  const handleUpdateUsers = (updatedUsers: User[]) => {
+    setUsers(updatedUsers);
+    saveUsersToApi(updatedUsers);
+  };
 
   // --- NOTIFICATION SYSTEM ---
   const [notifications, setNotifications] = useState<{ id: string, text: string, type: 'up' | 'down' }[]>([]);
@@ -279,7 +319,7 @@ const App: React.FC = () => {
       <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
         <div className="mb-8 relative">
           <div className="absolute inset-0 bg-amber-500/20 blur-3xl rounded-full animate-pulse"></div>
-          <Shield size="5rem" className="text-amber-400 relative z-10 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
+          <Shield size="5rem" className="text-amber-400 relative z-10 drop-shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
         </div>
         <h1 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight">
           بەخێر بێن بۆ <span className="text-amber-400">Golden Exchange</span>
@@ -289,7 +329,7 @@ const App: React.FC = () => {
         </p>
         <button 
           onClick={() => setAppState('splash')}
-          className="group relative px-8 py-4 bg-amber-500 text-slate-900 font-black text-xl rounded-2xl overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]"
+          className="group relative px-8 py-4 bg-amber-500 text-slate-900 font-black text-xl rounded-2xl overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(212,175,55,0.5)]"
         >
           <span className="relative z-10 flex items-center gap-2">
             دەستپێکردن <TrendingUp size="1.25rem" />
@@ -326,7 +366,7 @@ const App: React.FC = () => {
   };
 
   if (!currentUser) {
-    return <Login users={users} onLogin={setCurrentUser} onRegister={(u) => setUsers(prev => [...prev, u])} onSwitch={()=>{}} t={t} config={config} />; 
+    return <Login users={users} onLogin={setCurrentUser} onRegister={handleRegister} onSwitch={()=>{}} t={t} config={config} />; 
   }
 
   return (
@@ -395,7 +435,7 @@ const App: React.FC = () => {
             case 'crypto': return <CryptoView cryptoRates={cryptoRates} t={t} config={config} favorites={favorites} toggleFavorite={toggleFavorite} />;
             case 'converter': return <Converter rates={rates} t={t} />;
             case 'favorites': return <FavoritesView rates={rates} metals={metals} cryptoRates={cryptoRates} favorites={favorites} toggleFavorite={toggleFavorite} t={t} config={config} />;
-            case 'admin': return <AdminDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} users={users} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateUsers={setUsers} onUpdateHeadlines={setHeadlines} t={t} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} />;
+            case 'admin': return <AdminDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} users={users} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateUsers={handleUpdateUsers} onUpdateHeadlines={setHeadlines} t={t} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} />;
             case 'developer': return <DeveloperView config={config} onUpdateConfig={setConfig} rates={rates} metals={metals} cryptoRates={cryptoRates} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateHeadlines={setHeadlines} t={t} language={language} />;
             case 'settings': return <SettingsView currentUser={currentUser} onUpdateUser={handleUpdateUser} onViewChange={setView} onLogout={() => {setCurrentUser(null); localStorage.removeItem(`${STORAGE_KEY}_user`);}} theme={theme} setTheme={setTheme} language={language} setLanguage={setLanguage} t={t} config={config} onUpdateConfig={setConfig} />;
             default: return <MarketView rates={rates} headlines={headlines} t={t} config={config} favorites={favorites} toggleFavorite={toggleFavorite} />;

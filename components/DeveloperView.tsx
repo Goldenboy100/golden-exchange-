@@ -305,7 +305,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
             <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl space-y-3">
                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Primary Identity Color</label>
                <div className="flex gap-2 flex-wrap">
-                 {['#0284c7', '#cd7f32', '#059669', '#7c3aed', '#db2777', '#dc2626'].map(color => (
+                 {['#D4AF37', '#0284c7', '#cd7f32', '#059669', '#7c3aed', '#db2777', '#dc2626'].map(color => (
                    <button
                     key={color}
                     onClick={() => onUpdateConfig({...config, primaryColor: color})}

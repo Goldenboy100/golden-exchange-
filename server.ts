@@ -1,0 +1,111 @@
+import express from "express";
+import cors from "cors";
+import { createServer as createViteServer } from "vite";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const DATA_DIR = path.join(__dirname, "data");
+const USERS_FILE = path.join(DATA_DIR, "users.json");
+
+async function ensureDataDir() {
+  try {
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    try {
+      await fs.access(USERS_FILE);
+    } catch {
+      // Initial developer account
+      const initialUsers = [
+        {
+          id: 'admin',
+          name: 'Developer',
+          email: 'faraj',
+          password: 'faraj',
+          role: 'developer',
+          status: 'approved',
+          createdAt: new Date().toISOString()
+        }
+      ];
+      await fs.writeFile(USERS_FILE, JSON.stringify(initialUsers, null, 2));
+    }
+  } catch (err) {
+    console.error("Error initializing data directory:", err);
+  }
+}
+
+async function startServer() {
+  await ensureDataDir();
+
+  const app = express();
+  const PORT = 3000;
+
+  app.use(cors());
+  app.use(express.json());
+
+  // API Routes
+  app.get("/api/users", async (req, res) => {
+    try {
+      const data = await fs.readFile(USERS_FILE, "utf-8");
+      res.json(JSON.parse(data));
+    } catch (err) {
+      res.status(500).json({ error: "Failed to read users" });
+    }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      const newUser = req.body;
+      const data = await fs.readFile(USERS_FILE, "utf-8");
+      const users = JSON.parse(data);
+      
+      // Check if user exists
+      if (users.some((u: any) => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+        return res.status(400).json({ error: "User already exists" });
+      }
+
+      users.push(newUser);
+      await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+      res.status(201).json(newUser);
+    } catch (err) {
+      res.status(500).json({ error: "Failed to save user" });
+    }
+  });
+
+  app.put("/api/users", async (req, res) => {
+    try {
+      const updatedUsers = req.body;
+      await fs.writeFile(USERS_FILE, JSON.stringify(updatedUsers, null, 2));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to update users" });
+    }
+  });
+
+  // Vite middleware for development
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { 
+        middlewareMode: true,
+        host: '0.0.0.0',
+        port: 3000
+      },
+      appType: "spa",
+      root: __dirname,
+    });
+    app.use(vite.middlewares);
+  } else {
+    app.use(express.static(path.join(__dirname, "dist")));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(__dirname, "dist", "index.html"));
+    });
+  }
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+startServer();

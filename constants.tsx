@@ -55,7 +55,17 @@ export const TRANSLATIONS_INITIAL = {
     password: "وشەی نهێنی",
     crypto: "دراوە ئەلیکترۆنییەکان",
     price: "نرخ",
-    change_24h: "گۆڕانکاری ٢٤ کاتژمێر"
+    change_24h: "گۆڕانکاری ٢٤ کاتژمێر",
+    login_secure_terminal: "تێرمیناڵی پارێزراوی چوونەژوورەوە",
+    login_join_network: "بەشداربە لە تۆڕەکە",
+    login_name_label: "ناو",
+    login_name_placeholder: "ناوەکەت بنووسە...",
+    login_username_placeholder: "ناوی بەکارهێنەر...",
+    login_password_placeholder: "••••••••",
+    login_create_account: "هەژمار دروست بکە",
+    login_authenticate: "چوونەژوورەوە",
+    login_request_access: "داوای بەشداریکردن بکە",
+    login_already_have_account: "پێشتر هەژمارم هەیە"
   },
   ar: {
     currencies: "العملات",
@@ -99,7 +109,7 @@ export const TRANSLATIONS_INITIAL = {
 
 export const DEFAULT_CONFIG: AppConfig = {
   appName: 'Golden exchange',
-  primaryColor: '#0284c7', 
+  primaryColor: '#D4AF37', // Gold color
   secondaryColor: '#0f172a',
   backgroundColor: '#f8fafc',
   cardColor: '#ffffff',
