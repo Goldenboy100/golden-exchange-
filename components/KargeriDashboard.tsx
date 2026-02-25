@@ -14,6 +14,7 @@ const KargeriDashboard: React.FC<KargeriDashboardProps> = ({ users, t, config })
   const totalUsers = users.length;
   const activeUsers = users.filter(u => u.status === 'approved').length;
   const pendingUsers = users.filter(u => u.status === 'pending').length;
+  const vipUsers = users.filter(u => u.role === 'VIP' || u.role === 'VIP+').length;
 
   // Mock Daily Views Data (Simulated for "Digital" feel)
   const dailyViewsData = useMemo(() => {
@@ -66,8 +67,8 @@ const KargeriDashboard: React.FC<KargeriDashboardProps> = ({ users, t, config })
         {[
           { label: 'Total Users', val: totalUsers, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
           { label: 'Active Now', val: activeUsers, icon: ShieldCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-          { label: 'Pending Requests', val: pendingUsers, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-          { label: 'Daily Views', val: '1,420', icon: Eye, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
+          { label: 'VIP Members', val: vipUsers, icon: Activity, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+          { label: 'Pending Requests', val: pendingUsers, icon: Clock, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
         ].map((stat, i) => (
           <div key={i} className={`p-6 rounded-[2rem] border ${stat.border} bg-white/5 dark:bg-white/[0.02] hover:bg-white/10 dark:hover:bg-white/[0.05] backdrop-blur-md flex flex-col items-center justify-center gap-2 shadow-lg group hover:scale-[1.02] transition-all relative overflow-hidden`}>
             <div className={`absolute inset-0 ${stat.bg} opacity-0 group-hover:opacity-20 transition-opacity duration-500`}></div>

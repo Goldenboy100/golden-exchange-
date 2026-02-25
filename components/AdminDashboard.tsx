@@ -7,7 +7,6 @@ import {
   RefreshCw, Smartphone, Database, ShieldAlert
 } from 'lucide-react';
 import { CurrencyRate, MetalRate, CryptoRate, User, Headline, AppConfig } from '../types.ts';
-import { shweService } from '../services/shweService.ts';
 import { INITIAL_RATES, INITIAL_METALS, INITIAL_CRYPTO } from '../constants.tsx';
 import { isSupabaseConfigured, supabase } from '../src/lib/supabase';
 
@@ -354,6 +353,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         {(currentUser.role === 'admin' || currentUser.role === 'developer') && (
                           <>
                             <option value="staff">Staff</option>
+                            <option value="VIP">VIP</option>
                             <option value="VIP+">VIP+</option>
                             <option value="admin">Admin</option>
                             <option value="kargeri">Kargeri</option>

@@ -39,7 +39,7 @@ export interface User {
   name: string;
   email: string;
   password?: string;
-  role: 'admin' | 'user' | 'developer' | 'staff' | 'VIP+' | 'kargeri' | 'editor';
+  role: 'admin' | 'user' | 'developer' | 'staff' | 'VIP' | 'VIP+' | 'kargeri' | 'editor';
   status: 'pending' | 'approved' | 'blocked';
   createdAt: string;
   expiresAt?: string; // ISO date string for expiration
@@ -72,8 +72,49 @@ export interface AppConfig {
   enabledTabs?: string[];
   tabNames?: Record<string, string>;
   tabIcons?: Record<string, string>;
+  ledgerTitle?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  color?: string;
+  icon?: string;
+}
+
+export interface Product {
+  id: string;
+  userId: string;
+  name: string;
+  image?: string;
+  defaultPrice: number; // Selling Price
+  costPrice?: number;
+  quantity?: number;
+  barcode?: string;
+  wholesalePrice?: number;
+  expiryDate?: string;
+  socialLink?: string;
+  note?: string;
+  category?: string;
+}
+
+export interface Transaction {
+  id: string;
+  userId: string;
+  type: 'buy' | 'sell' | 'expense' | 'rent';
+  itemName: string;
+  image?: string; // Base64 or URL for product image
+  amount: number;
+  price: number;
+  total: number;
+  profit?: number; // Manual profit/loss entry
+  date: string;
+  note?: string;
+  customerName?: string;
+  status?: 'paid' | 'pending'; // pending = Qarz
+  dueDate?: string;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system' | 'paper';
 export type LanguageCode = 'ku' | 'ar' | 'en';
-export type ViewMode = 'market' | 'metals' | 'crypto' | 'admin' | 'converter' | 'settings' | 'developer' | 'favorites' | 'kargeri' | 'editor';
+export type ViewMode = 'market' | 'metals' | 'crypto' | 'admin' | 'converter' | 'settings' | 'developer' | 'favorites' | 'kargeri' | 'editor' | 'accounts';

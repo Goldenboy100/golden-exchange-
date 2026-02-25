@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Settings, ChevronLeft, Moon, Languages, ShieldCheck, LogOut, Check, User as UserIcon, Crown, Shield, Gem, Edit2, Cpu } from 'lucide-react';
+import { Settings, ChevronLeft, Moon, Languages, ShieldCheck, LogOut, Check, User as UserIcon, Crown, Shield, Gem, Edit2, Cpu, DollarSign } from 'lucide-react';
 import { User, ViewMode, ThemeMode, LanguageCode, AppConfig } from '../types.ts';
 
 interface SettingsViewProps {
@@ -24,13 +24,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   const [isEditingName, setIsEditingName] = useState(false);
   const [name, setName] = useState(currentUser?.name || '');
   const avatarInputRef = useRef<HTMLInputElement>(null);
-
-  const isAdminOrDev = currentUser?.role === 'admin' || currentUser?.role === 'developer';
+  const [showVipModal, setShowVipModal] = useState(false);
 
   const roleIcons: Record<string, React.ReactElement> = {
     developer: <img src="https://i.ibb.co/tqBvB4S/crown.gif" alt="Crown" className="w-4 h-4" />,
     admin: <ShieldCheck size={14} className="text-emerald-500" />,
     'VIP+': <img src="https://i.ibb.co/cQx9cZc/gem.gif" alt="Gem" className="w-4 h-4" />,
+    VIP: <Crown size={14} className="text-amber-500" />,
     staff: <Shield size={14} className="text-primary" />,
     user: <UserIcon size={14} className="text-slate-500" />,
   };
@@ -52,6 +52,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       };
       reader.readAsDataURL(e.target.files[0]);
     }
+  };
+
+  const handleVipPurchase = () => {
+    const message = encodeURIComponent("سڵاو، دەمەوێت هەژماری VIP بکڕم. ئەمەش وێنەی پسوڵەکەمە:");
+    window.open(`https://wa.me/9647519055494?text=${message}`, '_blank');
   };
 
   return (
@@ -146,6 +151,40 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
             <ChevronLeft size={18} className="text-slate-300" />
           </button>
+
+          {['VIP', 'VIP+', 'admin', 'developer'].includes(currentUser?.role || '') ? (
+            <button 
+              onClick={() => onViewChange('accounts')} 
+              className="w-full p-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-5">
+                <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600">
+                  <DollarSign size={20} />
+                </div>
+                <div className="text-right">
+                  <p className="font-black text-lg text-slate-800 dark:text-slate-200 uppercase">حسابات و مامەڵەکان</p>
+                  <p className="text-[10px] font-bold text-amber-500 mt-0.5">Premium Ledger Feature</p>
+                </div>
+              </div>
+              <ChevronLeft size={18} className="text-slate-300" />
+            </button>
+          ) : (
+            <button 
+              onClick={() => setShowVipModal(true)} 
+              className="w-full p-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-colors bg-gradient-to-r from-amber-500/5 to-transparent"
+            >
+              <div className="flex items-center gap-5">
+                <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-500/30 animate-pulse">
+                  <Crown size={20} />
+                </div>
+                <div className="text-right">
+                  <p className="font-black text-lg text-slate-800 dark:text-slate-200 uppercase">کڕینی VIP</p>
+                  <p className="text-[10px] font-bold text-amber-500 mt-0.5">تایبەتمەندییەکان بەدەستبهێنە</p>
+                </div>
+              </div>
+              <ChevronLeft size={18} className="text-slate-300" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -155,6 +194,64 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       >
         {t('logout')}
       </button>
+
+      {/* VIP Modal */}
+      {showVipModal && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onClick={() => setShowVipModal(false)} />
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-300 border border-amber-500/20">
+             <div className="text-center mb-8">
+               <div className="w-20 h-20 bg-amber-500 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-amber-500/30 mb-4">
+                 <Crown size={40} />
+               </div>
+               <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter">VIP Membership</h2>
+               <p className="text-amber-500 font-black text-lg mt-2">20,000 IQD / Lifetime</p>
+             </div>
+
+             <div className="space-y-4 mb-8">
+               {[
+                 'تۆمارکردنی بێسنووری کاڵا',
+                 'هەژمارکردنی قازانج و زیان',
+                 'بەڕێوەبردنی کۆگا (Inventory)',
+                 'پشتگیری تەکنیکی 24/7'
+               ].map((feature, i) => (
+                 <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
+                   <div className="p-1 bg-emerald-500 rounded-full text-white">
+                     <Check size={12} strokeWidth={4} />
+                   </div>
+                   <span className="font-bold text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+                 </div>
+               ))}
+             </div>
+
+             <div className="space-y-3">
+               <button 
+                 onClick={() => window.open('https://fib.iq', '_blank')}
+                 className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-600/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+               >
+                 <DollarSign size={24} />
+                 پارەدان بە FIB
+               </button>
+               
+               <button 
+                 onClick={() => {
+                   const subject = encodeURIComponent("VIP Activation Request");
+                   const body = encodeURIComponent(`I have sent 20,000 IQD via FIB.\nMy Email: ${currentUser?.email}\nMy ID: ${currentUser?.id}`);
+                   window.open(`mailto:emily@example.com?subject=${subject}&body=${body}`, '_blank');
+                 }}
+                 className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-2xl font-black text-lg shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+               >
+                 <span className="truncate">ئاگادارکردنەوەی ئێمیلی (Email)</span>
+               </button>
+             </div>
+             
+             <p className="text-center text-[10px] text-slate-400 mt-4 font-bold">
+               ژمارەی هەژماری FIB: 07519055494
+             </p>
+          </div>
+        </div>
+      )}
+
 
       {/* Language Modal */}
       {showLanguageModal && (

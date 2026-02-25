@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { TrendingUp, Settings, Bitcoin, Coins, Calculator, Cpu, Shield } from 'lucide-react';
-import { CurrencyRate, MetalRate, CryptoRate, ViewMode, User, ThemeMode, LanguageCode, AppConfig, Headline } from './types.ts';
+import { CurrencyRate, MetalRate, CryptoRate, ViewMode, User, ThemeMode, LanguageCode, AppConfig, Headline, Transaction, Product, Category } from './types.ts';
 import { INITIAL_RATES, INITIAL_METALS, INITIAL_CRYPTO, TRANSLATIONS_INITIAL, DEFAULT_CONFIG } from './constants.tsx';
 import { cryptoService } from './services/cryptoService.ts';
+import { marketService } from './services/marketService.ts';
 import MarketView from './components/MarketView.tsx';
 import MetalsView from './components/MetalsView.tsx';
 import CryptoView from './components/CryptoView.tsx';
@@ -15,11 +16,12 @@ import DeveloperView from './components/DeveloperView.tsx';
 import FavoritesView from './components/FavoritesView.tsx';
 import KargeriDashboard from './components/KargeriDashboard.tsx';
 import EditorDashboard from './components/EditorDashboard.tsx';
+import AccountsView from './components/AccountsView.tsx';
 import Login from './components/Login.tsx';
 import { supabase, isSupabaseConfigured } from './src/lib/supabase';
 
 const App: React.FC = () => {
-  const STORAGE_KEY = 'golden_v15_data';
+  const STORAGE_KEY = 'golden_v21_data';
 
   const [appState, setAppState] = useState<'welcome' | 'splash' | 'main'>('welcome');
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
@@ -47,6 +49,7 @@ const App: React.FC = () => {
   });
   const [metals, setMetals] = useState<MetalRate[]>(() => {
     try { 
+      if (INITIAL_METALS.length === 0) return [];
       const saved = localStorage.getItem(`${STORAGE_KEY}_metals`); 
       if (!saved) return INITIAL_METALS;
       const data = JSON.parse(saved);
@@ -72,6 +75,15 @@ const App: React.FC = () => {
   const [favorites, setFavorites] = useState<string[]>(() => {
     try { const saved = localStorage.getItem(`${STORAGE_KEY}_favorites`); return saved ? JSON.parse(saved) : []; } catch { return []; }
   });
+  const [transactions, setTransactions] = useState<Transaction[]>(() => {
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_transactions`); return saved ? JSON.parse(saved) : []; } catch { return []; }
+  });
+  const [products, setProducts] = useState<Product[]>(() => {
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_products`); return saved ? JSON.parse(saved) : []; } catch { return []; }
+  });
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_categories`); return saved ? JSON.parse(saved) : []; } catch { return []; }
+  });
 
   const toggleFavorite = (id: string) => {
     setFavorites(prev => 
@@ -80,6 +92,225 @@ const App: React.FC = () => {
   };
 
   const [users, setUsers] = useState<User[]>([]);
+
+  // Refs for tracking previous state to detect deletions
+  const prevRatesRef = React.useRef<CurrencyRate[]>(rates);
+  const prevMetalsRef = React.useRef<MetalRate[]>(metals);
+  const prevCryptoRef = React.useRef<CryptoRate[]>(cryptoRates);
+  const prevHeadlinesRef = React.useRef<Headline[]>(headlines);
+  const prevUsersRef = React.useRef<User[]>(users);
+  const prevTransactionsRef = React.useRef<Transaction[]>(transactions);
+  const prevProductsRef = React.useRef<Product[]>(products);
+  const prevCategoriesRef = React.useRef<Category[]>(categories);
+
+  // Sync Rates to Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured() || rates === prevRatesRef.current) return;
+    const prev = prevRatesRef.current;
+    const next = rates;
+    
+    const deleted = prev.filter(p => !next.find(n => n.id === p.id));
+    const addedOrUpdated = next.filter(n => {
+      const p = prev.find(x => x.id === n.id);
+      return !p || JSON.stringify(p) !== JSON.stringify(n);
+    });
+
+    if (deleted.length > 0 || addedOrUpdated.length > 0) {
+      (async () => {
+        for (const item of deleted) {
+          await supabase.from('rates').delete().eq('id', item.id);
+        }
+        if (addedOrUpdated.length > 0) {
+          await supabase.from('rates').upsert(addedOrUpdated);
+        }
+      })();
+    }
+    prevRatesRef.current = next;
+  }, [rates]);
+
+  // Sync Metals to Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured() || metals === prevMetalsRef.current) return;
+    const prev = prevMetalsRef.current;
+    const next = metals;
+    
+    const deleted = prev.filter(p => !next.find(n => n.id === p.id));
+    const addedOrUpdated = next.filter(n => {
+      const p = prev.find(x => x.id === n.id);
+      return !p || JSON.stringify(p) !== JSON.stringify(n);
+    });
+
+    if (deleted.length > 0 || addedOrUpdated.length > 0) {
+      (async () => {
+        for (const item of deleted) {
+          await supabase.from('metals').delete().eq('id', item.id);
+        }
+        if (addedOrUpdated.length > 0) {
+          await supabase.from('metals').upsert(addedOrUpdated);
+        }
+      })();
+    }
+    prevMetalsRef.current = next;
+  }, [metals]);
+
+  // Sync Crypto to Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured() || cryptoRates === prevCryptoRef.current) return;
+    const prev = prevCryptoRef.current;
+    const next = cryptoRates;
+    
+    const deleted = prev.filter(p => !next.find(n => n.id === p.id));
+    const addedOrUpdated = next.filter(n => {
+      const p = prev.find(x => x.id === n.id);
+      return !p || JSON.stringify(p) !== JSON.stringify(n);
+    });
+
+    if (deleted.length > 0 || addedOrUpdated.length > 0) {
+      (async () => {
+        for (const item of deleted) {
+          await supabase.from('crypto').delete().eq('id', item.id);
+        }
+        if (addedOrUpdated.length > 0) {
+          await supabase.from('crypto').upsert(addedOrUpdated);
+        }
+      })();
+    }
+    prevCryptoRef.current = next;
+  }, [cryptoRates]);
+
+  // Sync Headlines to Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured() || headlines === prevHeadlinesRef.current) return;
+    const prev = prevHeadlinesRef.current;
+    const next = headlines;
+    
+    const deleted = prev.filter(p => !next.find(n => n.id === p.id));
+    const addedOrUpdated = next.filter(n => {
+      const p = prev.find(x => x.id === n.id);
+      return !p || JSON.stringify(p) !== JSON.stringify(n);
+    });
+
+    if (deleted.length > 0 || addedOrUpdated.length > 0) {
+      (async () => {
+        for (const item of deleted) {
+          await supabase.from('news').delete().eq('id', item.id);
+        }
+        if (addedOrUpdated.length > 0) {
+          await supabase.from('news').upsert(addedOrUpdated);
+        }
+      })();
+    }
+    prevHeadlinesRef.current = next;
+  }, [headlines]);
+
+  // Sync Users to Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured() || users === prevUsersRef.current) return;
+    const prev = prevUsersRef.current;
+    const next = users;
+    
+    const deleted = prev.filter(p => !next.find(n => n.id === p.id));
+    const addedOrUpdated = next.filter(n => {
+      const p = prev.find(x => x.id === n.id);
+      return !p || JSON.stringify(p) !== JSON.stringify(n);
+    });
+
+    if (deleted.length > 0 || addedOrUpdated.length > 0) {
+      (async () => {
+        for (const item of deleted) {
+          await supabase.from('users').delete().eq('id', item.id);
+        }
+        if (addedOrUpdated.length > 0) {
+          await supabase.from('users').upsert(addedOrUpdated);
+        }
+      })();
+    }
+    prevUsersRef.current = next;
+  }, [users]);
+
+  // Sync Transactions to Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured() || transactions === prevTransactionsRef.current) return;
+    const prev = prevTransactionsRef.current;
+    const next = transactions;
+    
+    const deleted = prev.filter(p => !next.find(n => n.id === p.id));
+    const addedOrUpdated = next.filter(n => {
+      const p = prev.find(x => x.id === n.id);
+      return !p || JSON.stringify(p) !== JSON.stringify(n);
+    });
+
+    if (deleted.length > 0 || addedOrUpdated.length > 0) {
+      (async () => {
+        for (const item of deleted) {
+          await supabase.from('transactions').delete().eq('id', item.id);
+        }
+        if (addedOrUpdated.length > 0) {
+          await supabase.from('transactions').upsert(addedOrUpdated);
+        }
+      })();
+    }
+    prevTransactionsRef.current = next;
+  }, [transactions]);
+
+  // Sync Products to Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured() || products === prevProductsRef.current) return;
+    const prev = prevProductsRef.current;
+    const next = products;
+    
+    const deleted = prev.filter(p => !next.find(n => n.id === p.id));
+    const addedOrUpdated = next.filter(n => {
+      const p = prev.find(x => x.id === n.id);
+      return !p || JSON.stringify(p) !== JSON.stringify(n);
+    });
+
+    if (deleted.length > 0 || addedOrUpdated.length > 0) {
+      (async () => {
+        for (const item of deleted) {
+          await supabase.from('products').delete().eq('id', item.id);
+        }
+        if (addedOrUpdated.length > 0) {
+          await supabase.from('products').upsert(addedOrUpdated);
+        }
+      })();
+    }
+    prevProductsRef.current = next;
+  }, [products]);
+
+  // Sync Categories to Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured() || categories === prevCategoriesRef.current) return;
+    const prev = prevCategoriesRef.current;
+    const next = categories;
+    
+    const deleted = prev.filter(p => !next.find(n => n.id === p.id));
+    const addedOrUpdated = next.filter(n => {
+      const p = prev.find(x => x.id === n.id);
+      return !p || JSON.stringify(p) !== JSON.stringify(n);
+    });
+
+    if (deleted.length > 0 || addedOrUpdated.length > 0) {
+      (async () => {
+        for (const item of deleted) {
+          await supabase.from('categories').delete().eq('id', item.id);
+        }
+        if (addedOrUpdated.length > 0) {
+          await supabase.from('categories').upsert(addedOrUpdated);
+        }
+      })();
+    }
+    prevCategoriesRef.current = next;
+  }, [categories]);
+
+  // Sync Config to Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    (async () => {
+      const { id, ...rest } = config;
+      await supabase.from('config').upsert({ id: 1, ...rest });
+    })();
+  }, [config]);
 
   // Fetch users from Supabase or API
   useEffect(() => {
@@ -180,6 +411,18 @@ const App: React.FC = () => {
         const { data: configData } = await supabase.from('config').select('*').single();
         if (configData) setConfig(configData);
 
+        // Fetch Transactions
+        const { data: transactionsData } = await supabase.from('transactions').select('*');
+        if (transactionsData && transactionsData.length > 0) setTransactions(transactionsData);
+
+        // Fetch Products
+        const { data: productsData } = await supabase.from('products').select('*');
+        if (productsData && productsData.length > 0) setProducts(productsData);
+
+        // Fetch Categories
+        const { data: categoriesData } = await supabase.from('categories').select('*');
+        if (categoriesData && categoriesData.length > 0) setCategories(categoriesData);
+
         setDbConnected(true);
       } catch (err) {
         console.error("Supabase fetch error:", err);
@@ -192,7 +435,7 @@ const App: React.FC = () => {
     // Real-time subscriptions for all tables
     let channels: any[] = [];
     if (isSupabaseConfigured()) {
-      const tables = ['rates', 'metals', 'crypto', 'news', 'config'];
+      const tables = ['rates', 'metals', 'crypto', 'news', 'config', 'transactions', 'products', 'categories'];
       tables.forEach(table => {
         const channel = supabase.channel(`public:${table}`)
           .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
@@ -207,23 +450,6 @@ const App: React.FC = () => {
       channels.forEach(channel => supabase.removeChannel(channel));
     };
   }, []);
-
-  // Helper to sync data to Supabase
-  const syncToSupabase = async (table: string, data: any) => {
-    if (!isSupabaseConfigured()) return;
-    
-    try {
-      if (table === 'config') {
-        const { id, ...rest } = data;
-        await supabase.from(table).upsert({ id: 1, ...rest });
-      } else if (Array.isArray(data) && data.length > 0) {
-        // Only upsert if there is data to send
-        await supabase.from(table).upsert(data);
-      }
-    } catch (err) {
-      console.error(`Failed to sync ${table} to Supabase:`, err);
-    }
-  };
 
   const t = useCallback((key: string): string => {
     const langTrans = config.translations?.[language] || TRANSLATIONS_INITIAL[language];
@@ -314,77 +540,91 @@ const App: React.FC = () => {
 
   // --- LIVE SIMULATION ENGINE ---
   useEffect(() => {
-    // Global & Toman simulation every 3 seconds (Live Market feel)
-    const globalTimer = setInterval(() => {
-      setRates(prev => prev.map(r => {
-        if (r.category === 'local' || r.category === 'transfer') return r;
+    // Market Service Integration (Global Borsa Data)
+    // Fetches data every 5 seconds to simulate live feed from global exchange
+    const marketTimer = setInterval(async () => {
+      try {
+        const { rates: newRates, metals: newMetals } = await marketService.fetchLiveMarketData();
         
-        const volatility = r.category === 'global' ? 10 : 50;
-        const change = (Math.random() - 0.5) * volatility;
-        const newBuy = r.buy + change;
-        const newSell = r.sell + change;
-        const newChange24h = (r.change24h || 0) + (Math.random() - 0.5) * 0.02;
+        if (newRates && newRates.length > 0) {
+          setRates(prev => {
+            if (prev.length === 0) return newRates.map(r => ({
+              ...r,
+              id: r.id || `r_${Math.random().toString(36).substr(2, 9)}`,
+              buy: r.buy || 0,
+              sell: r.sell || 0,
+              change24h: r.change24h || 0,
+              lastUpdated: new Date().toISOString(),
+              change: 'neutral',
+              flag: r.flag || 'https://flagcdn.com/w80/un.png',
+              category: r.category || 'local'
+            } as CurrencyRate));
 
-        if (Math.abs(change) > 25) { // Only notify significant changes (> 25 IQD)
-           const type = change > 0 ? 'up' : 'down';
-           const action = change > 0 ? 'بەرزبووەوە' : 'دابەزی';
-           addNotification(`نرخی ${r.name} ${action} بە بڕی ${Math.abs(Math.round(change))} دینار`, type, r.id);
+            return prev.map(r => {
+              const update = newRates.find(u => u.code === r.code && u.category === r.category);
+              if (update) {
+                const change = update.buy! - r.buy;
+                let changeType: 'up' | 'down' | 'neutral' = 'neutral';
+                if (change > 0) changeType = 'up';
+                if (change < 0) changeType = 'down';
+
+                return {
+                  ...r,
+                  buy: update.buy || r.buy,
+                  sell: update.sell || r.sell,
+                  lastUpdated: new Date().toISOString(),
+                  change: changeType
+                };
+              }
+              return r;
+            });
+          });
         }
 
-        return { 
-          ...r, 
-          buy: Math.round(newBuy), 
-          sell: Math.round(newSell), 
-          change24h: Number(newChange24h.toFixed(2)),
-          lastUpdated: new Date().toISOString(), 
-          change: change > 0 ? 'up' : 'down' 
-        };
-      }));
-      setMetals(prev => prev.map(m => {
-        if (m.category === 'global' || m.category === 'gold') {
-          const volatility = m.category === 'global' ? 0.5 : 500;
-          const change = (Math.random() - 0.5) * volatility;
-          const newBuy = m.buy + change;
-          const newSell = m.sell + change;
-          const newChange24h = (m.change24h || 0) + (Math.random() - 0.5) * 0.05;
+        if (newMetals && newMetals.length > 0) {
+          setMetals(prev => {
+            if (prev.length === 0) return newMetals.map(m => ({
+              ...m,
+              id: m.id || `m_${Math.random().toString(36).substr(2, 9)}`,
+              buy: m.buy || 0,
+              sell: m.sell || 0,
+              change24h: m.change24h || 0,
+              lastUpdated: new Date().toISOString(),
+              change: 'neutral',
+              icon: m.icon || 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png',
+              unit: m.unit || '$'
+            } as MetalRate));
 
-          if (Math.abs(change) > 150 && m.category === 'gold') { // Only notify significant gold changes (> 150 IQD)
-             const type = change > 0 ? 'up' : 'down';
-             const action = change > 0 ? 'بەرزبووەوە' : 'دابەزی';
-             addNotification(`نرخی ${m.name} ${action} بە بڕی ${Math.abs(Math.round(change))} دینار`, type, m.id);
-          }
+            return prev.map(m => {
+              const update = newMetals.find(u => u.code === m.code && u.category === m.category);
+              if (update) {
+                const change = update.buy! - m.buy;
+                let changeType: 'up' | 'down' | 'neutral' = 'neutral';
+                if (change > 0) changeType = 'up';
+                if (change < 0) changeType = 'down';
 
-          return { 
-            ...m, 
-            buy: Number(newBuy.toFixed(m.category === 'global' ? 2 : 0)), 
-            sell: Number(newSell.toFixed(m.category === 'global' ? 2 : 0)), 
-            change24h: Number(newChange24h.toFixed(2)),
-            lastUpdated: new Date().toISOString(), 
-            change: change > 0 ? 'up' : 'down' 
-          };
+                // Notify on significant gold changes (> 0.50 USD)
+                if (Math.abs(change) > 0.50 && m.category === 'gold') {
+                   const action = change > 0 ? 'بەرزبووەوە' : 'دابەزی';
+                   addNotification(`نرخی ${m.name} ${action} بە بڕی $${Math.abs(change).toFixed(2)}`, changeType, m.id);
+                }
+
+                return {
+                  ...m,
+                  buy: update.buy || m.buy,
+                  sell: update.sell || m.sell,
+                  lastUpdated: new Date().toISOString(),
+                  change: changeType
+                };
+              }
+              return m;
+            });
+          });
         }
-        return m;
-      }));
-    }, 3000);
-
-    // Silver simulation every 2 seconds
-    const silverTimer = setInterval(() => {
-      setMetals(prev => prev.map(m => {
-        if (m.category === 'silver') {
-          const change = (Math.random() - 0.5) * 5;
-          const newChange24h = (m.change24h || 0) + (Math.random() - 0.5) * 0.1;
-          return { 
-            ...m, 
-            buy: Math.round(m.buy + change), 
-            sell: Math.round(m.sell + change), 
-            change24h: Number(newChange24h.toFixed(2)),
-            lastUpdated: new Date().toISOString(), 
-            change: change > 0 ? 'up' : 'down' 
-          };
-        }
-        return m;
-      }));
-    }, 2000);
+      } catch (err) {
+        console.error("Market Service update failed", err);
+      }
+    }, 5000);
 
     // Crypto simulation every 10 seconds (Real Data)
     const cryptoTimer = setInterval(async () => {
@@ -409,7 +649,7 @@ const App: React.FC = () => {
       }
     }, 10000);
 
-    return () => { clearInterval(globalTimer); clearInterval(silverTimer); clearInterval(cryptoTimer); };
+    return () => { clearInterval(marketTimer); clearInterval(cryptoTimer); };
   }, []);
 
 
@@ -433,16 +673,10 @@ const App: React.FC = () => {
       localStorage.setItem(`${STORAGE_KEY}_theme`, theme);
       localStorage.setItem(`${STORAGE_KEY}_lang`, language);
       localStorage.setItem(`${STORAGE_KEY}_favorites`, JSON.stringify(favorites));
+      localStorage.setItem(`${STORAGE_KEY}_transactions`, JSON.stringify(transactions));
+      localStorage.setItem(`${STORAGE_KEY}_products`, JSON.stringify(products));
+      localStorage.setItem(`${STORAGE_KEY}_categories`, JSON.stringify(categories));
       if (currentUser) localStorage.setItem(`${STORAGE_KEY}_user`, JSON.stringify(currentUser));
-
-      // Sync to Supabase if admin/developer
-      if (currentUser?.role === 'admin' || currentUser?.role === 'developer') {
-        syncToSupabase('rates', rates);
-        syncToSupabase('metals', metals);
-        syncToSupabase('crypto', cryptoRates);
-        syncToSupabase('news', headlines);
-        syncToSupabase('config', config);
-      }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'QuotaExceededError') {
         alert('بیرگەی ناوخۆیی وێبگەڕ پڕ بووە! تکایە هەندێک داتای بارکراو بسڕەوە یان داتای کەمتر بار بکە (بۆ نموونە، وێنەی بچووکتر).');
@@ -450,7 +684,7 @@ const App: React.FC = () => {
         console.error("Error saving to localStorage:", error);
       }
     }
-  }, [rates, metals, headlines, config, theme, language, currentUser, favorites]);
+  }, [rates, metals, headlines, config, theme, language, currentUser, favorites, transactions, products, categories]);
 
   // Check for user expiration
   useEffect(() => {
@@ -605,7 +839,7 @@ const App: React.FC = () => {
 
       <main className="flex-1 overflow-y-auto pb-32 pt-6 px-4 md:px-12 no-scrollbar">
         {(() => {
-          if (!currentUser && (view === 'admin' || view === 'developer' || view === 'settings')) return <Login onLogin={setCurrentUser} onRegister={handleRegister} t={t} config={config} onSwitch={()=>{}} />;
+          if (!currentUser && (view === 'admin' || view === 'developer' || view === 'settings' || view === 'accounts' || view === 'kargeri' || view === 'editor')) return <Login onLogin={setCurrentUser} onRegister={handleRegister} t={t} config={config} onSwitch={()=>{}} />;
           switch (view) {
             case 'market': return <MarketView rates={rates} headlines={headlines} t={t} config={config} favorites={favorites} toggleFavorite={toggleFavorite} />;
             case 'metals': return <MetalsView metals={metals} t={t} language={language} currentUser={currentUser} config={config} favorites={favorites} toggleFavorite={toggleFavorite} />;
@@ -613,6 +847,7 @@ const App: React.FC = () => {
             case 'converter': return <Converter rates={rates} t={t} />;
             case 'favorites': return <FavoritesView rates={rates} metals={metals} cryptoRates={cryptoRates} favorites={favorites} toggleFavorite={toggleFavorite} t={t} config={config} />;
             case 'admin': return <AdminDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} users={users} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateUsers={handleUpdateUsers} onUpdateHeadlines={setHeadlines} t={t} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} />;
+            case 'accounts': return <AccountsView transactions={transactions} onAddTransaction={(t) => setTransactions(prev => [...prev, t])} onUpdateTransaction={(updatedT) => setTransactions(prev => prev.map(t => t.id === updatedT.id ? updatedT : t))} onDeleteTransaction={(id) => setTransactions(prev => prev.filter(t => t.id !== id))} products={products} onUpdateProducts={setProducts} categories={categories} onUpdateCategories={setCategories} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} t={t} onBack={() => setView('settings')} />;
             case 'kargeri': return <KargeriDashboard users={users} t={t} config={config} />;
             case 'editor': return <EditorDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateHeadlines={setHeadlines} t={t} config={config} onUpdateConfig={setConfig} currentUser={currentUser!} />;
             case 'developer': return <DeveloperView config={config} onUpdateConfig={setConfig} rates={rates} metals={metals} cryptoRates={cryptoRates} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateHeadlines={setHeadlines} t={t} language={language} />;

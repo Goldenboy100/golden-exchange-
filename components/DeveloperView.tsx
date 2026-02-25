@@ -456,7 +456,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
       {/* System Status Indicators */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
          {[
-           { label: 'Real-time Feed', val: 'CONNECTED', icon: Activity, color: 'text-emerald-500' },
+           { label: 'Real-time Feed', val: 'SHWE-2026-01-30', icon: Activity, color: 'text-emerald-500' },
            { label: 'System Kernel', val: 'V16.0.4-STABLE', icon: Cpu, color: 'text-primary' },
            { label: 'Storage Mode', val: 'LOCAL_SYNC', icon: Sliders, color: 'text-amber-500' },
            { label: 'Access Level', val: 'ROOT_DEV', icon: TerminalIcon, color: 'text-rose-500' },

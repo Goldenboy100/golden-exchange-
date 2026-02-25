@@ -6,7 +6,6 @@ import {
   RefreshCw, Smartphone
 } from 'lucide-react';
 import { CurrencyRate, MetalRate, CryptoRate, Headline, AppConfig, User } from '../types.ts';
-import { shweService } from '../services/shweService.ts';
 import { INITIAL_RATES, INITIAL_METALS, INITIAL_CRYPTO } from '../constants.tsx';
 
 interface EditorDashboardProps {
@@ -41,76 +40,6 @@ const EditorDashboard: React.FC<EditorDashboardProps> = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<string | null>(null);
-
-  const handleShweSync = async () => {
-    setIsSyncing(true);
-    setSyncStatus('خەریکی وەرگرتنی نرخەکانە لە SHWE...');
-    try {
-      const data = await shweService.fetchRates();
-      
-      // Update or Add Rates
-      onUpdateRates(prev => {
-        let updated = [...prev];
-        data.rates.forEach(sr => {
-          const index = updated.findIndex(r => r.name === sr.name && r.category === sr.category);
-          if (index !== -1) {
-            updated[index] = { ...updated[index], buy: sr.buy || updated[index].buy, sell: sr.sell || updated[index].sell, lastUpdated: new Date().toISOString(), change: 'neutral' };
-          } else {
-            updated.push({
-              id: `r_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-              name: sr.name || 'Unknown',
-              code: sr.code || '???',
-              symbol: 'IQD',
-              buy: sr.buy || 0,
-              sell: sr.sell || 0,
-              change24h: 0,
-              lastUpdated: new Date().toISOString(),
-              change: 'neutral',
-              flag: sr.flag || 'https://flagcdn.com/w80/un.png',
-              category: sr.category as any || 'local'
-            });
-          }
-        });
-        return updated;
-      });
-
-      // Update or Add Metals
-      onUpdateMetals(prev => {
-        let updated = [...prev];
-        data.metals.forEach(sm => {
-          const index = updated.findIndex(m => m.name === sm.name && m.category === sm.category);
-          if (index !== -1) {
-            updated[index] = { ...updated[index], buy: sm.buy || updated[index].buy, sell: sm.sell || updated[index].sell, lastUpdated: new Date().toISOString(), change: 'neutral' };
-          } else {
-            updated.push({
-              id: `m_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-              name: sm.name || 'Unknown',
-              code: sm.code || '???',
-              buy: sm.buy || 0,
-              sell: sm.sell || 0,
-              change24h: 0,
-              lastUpdated: new Date().toISOString(),
-              change: 'neutral',
-              icon: sm.icon || 'https://cdn-icons-png.flaticon.com/512/2415/2415255.png',
-              category: sm.category as any || 'gold',
-              unit: sm.unit || 'Mithqal'
-            });
-          }
-        });
-        return updated;
-      });
-
-      setSyncStatus('هەموو نرخەکان بە سەرکەوتوویی لە SHWE وەرگیران و زانیارییە نوێیەکان زیادکران!');
-      setTimeout(() => setSyncStatus(null), 3000);
-    } catch (error) {
-      setSyncStatus('هەڵەیەک ڕوویدا لە کاتی وەرگرتنی نرخەکان.');
-      setTimeout(() => setSyncStatus(null), 3000);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const startEdit = (item: any) => {
     setEditForm({ ...item });
@@ -124,7 +53,7 @@ const EditorDashboard: React.FC<EditorDashboardProps> = ({
     if (tab === 'rates') {
       setEditForm({ name: '', code: 'USD/IQD', symbol: 'IQD', buy: 0, sell: 0, category: 'local', flag: 'https://flagcdn.com/w80/iq.png' });
     } else if (tab === 'metals') {
-      setEditForm({ name: '', code: '21K', unit: 'د.ع', buy: 0, sell: 0, category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/261/261917.png' });
+      setEditForm({ name: '', code: '21K', unit: '$', buy: 0, sell: 0, category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/261/261917.png' });
     } else if (tab === 'crypto') {
       setEditForm({ name: '', symbol: 'BTC', price: 0, change24h: 0, icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png' });
     } else if (tab === 'news') {
@@ -181,11 +110,6 @@ const EditorDashboard: React.FC<EditorDashboardProps> = ({
           <h2 className="text-xl font-black flex items-center gap-2 dark:text-white uppercase italic">
             <Edit3 size={20} className="text-primary" /> Editor Panel
           </h2>
-          {syncStatus && (
-            <div className="text-[9px] font-bold text-primary animate-pulse mt-1">
-              {syncStatus}
-            </div>
-          )}
         </div>
         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl gap-1 overflow-x-auto no-scrollbar">
           {availableTabs.map(tItem => (
@@ -199,14 +123,6 @@ const EditorDashboard: React.FC<EditorDashboardProps> = ({
           ))}
         </div>
         <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-          <button 
-            onClick={handleShweSync} 
-            disabled={isSyncing}
-            className="flex items-center gap-2 bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-200 px-4 py-2 rounded-lg font-bold text-[10px] uppercase shadow-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-all disabled:opacity-50"
-          >
-            <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
-            Sync SHWE
-          </button>
           <button 
             onClick={() => onUpdateConfig({...config, notificationsEnabled: !config.notificationsEnabled})}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[10px] uppercase transition-all ${config.notificationsEnabled ? 'bg-emerald-500 text-white shadow-sm' : 'bg-white dark:bg-slate-700 text-slate-500'}`}

@@ -124,37 +124,35 @@ export const DEFAULT_CONFIG: AppConfig = {
 
 export const INITIAL_RATES: CurrencyRate[] = [
   // --- LOCAL IRAQ ---
-  { id: 'l1', name: 'دۆلار - بەغدا', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.25, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
-  { id: 'l2', name: 'دۆلار - هەولێر', code: 'USD/IQD', symbol: 'IQD', buy: 151400, sell: 151900, change24h: 0.32, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
-  { id: 'l3', name: 'دۆلار - سلێمانی', code: 'USD/IQD', symbol: 'IQD', buy: 151350, sell: 151850, change24h: 0.12, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
-  { id: 'l4', name: 'دۆلار - کەرکووک', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: -0.05, lastUpdated: new Date().toISOString(), change: 'down', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
-  { id: 'l5', name: 'دۆلار - بەسرە', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: 0.08, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
-  { id: 'l6', name: 'دۆلار - دهۆک', code: 'USD/IQD', symbol: 'IQD', buy: 151400, sell: 151900, change24h: 0.15, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
-  { id: 'l7', name: 'دۆلار - نەجەف', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.05, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
-  { id: 'l8', name: 'دۆلار - مووسڵ', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: 0.10, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
-  { id: 'l9', name: 'دۆلار - کەربەلا', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.02, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
-  { id: 'l10', name: 'دۆلار - ناسریە', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: 0.04, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l1', name: 'دۆلار - بەغدا', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.15, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l2', name: 'دۆلار - هەولێر', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: 0.20, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l3', name: 'دۆلار - سلێمانی', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.18, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l4', name: 'دۆلار - کەرکووک', code: 'USD/IQD', symbol: 'IQD', buy: 151200, sell: 151700, change24h: 0.10, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l5', name: 'دۆلار - بەسرە', code: 'USD/IQD', symbol: 'IQD', buy: 151200, sell: 151700, change24h: 0.12, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l6', name: 'دۆلار - دهۆک', code: 'USD/IQD', symbol: 'IQD', buy: 151300, sell: 151800, change24h: 0.20, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l7', name: 'دۆلار - نەجەف', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.15, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l8', name: 'دۆلار - مووسڵ', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.15, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l9', name: 'دۆلار - کەربەلا', code: 'USD/IQD', symbol: 'IQD', buy: 151250, sell: 151750, change24h: 0.15, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'l10', name: 'دۆلار - ناسریە', code: 'USD/IQD', symbol: 'IQD', buy: 151200, sell: 151700, change24h: 0.12, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/iq.png', category: 'local' },
+  { id: 'gold_usd_21', name: 'زێڕی عەیارە ٢١ (Mithqal)', code: '21K/USD', symbol: '$', buy: 386.20, sell: 388.20, change24h: 0.7, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png', category: 'local' },
 
   // --- TOMAN ---
-  { id: 'tm1', name: 'تمەن بۆ دینار (ملیۆن)', code: 'IRR/IQD', symbol: 'IQD', buy: 22100, sell: 22600, change24h: -1.2, lastUpdated: new Date().toISOString(), change: 'down', flag: 'https://flagcdn.com/w80/ir.png', category: 'toman' },
-  { id: 'tm2', name: 'تمەن - تاران', code: 'USD/IRR', symbol: 'IRR', buy: 68500, sell: 69500, change24h: 2.4, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/ir.png', category: 'toman' },
+  { id: 'tm1', name: 'تمەن بۆ دینار (ملیۆن)', code: 'IRR/IQD', symbol: 'IQD', buy: 18250, sell: 18500, change24h: 0.5, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/ir.png', category: 'toman' },
+  { id: 'tm2', name: 'تمەن - تاران', code: 'USD/IRR', symbol: 'IRR', buy: 83000, sell: 84000, change24h: 0.8, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/ir.png', category: 'toman' },
 
   // --- GLOBAL ---
-  { id: 'g1', name: 'یۆرۆ بۆ دینار', code: 'EUR/IQD', symbol: 'IQD', buy: 161250, sell: 162750, change24h: 0.45, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/eu.png', category: 'global' },
-  { id: 'g2', name: 'پاوەند بۆ دینار', code: 'GBP/IQD', symbol: 'IQD', buy: 191000, sell: 192500, change24h: 0.55, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/gb.png', category: 'global' },
-  { id: 'g3', name: 'لیرەی تورکی بۆ دینار', code: 'TRY/IQD', symbol: 'IQD', buy: 4400, sell: 4600, change24h: -0.85, lastUpdated: new Date().toISOString(), change: 'down', flag: 'https://flagcdn.com/w80/tr.png', category: 'global' },
-  { id: 'g4', name: 'درهەمی ئیماراتی بۆ دینار', code: 'AED/IQD', symbol: 'IQD', buy: 41150, sell: 41650, change24h: 0.02, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/ae.png', category: 'global' },
-  { id: 'g5', name: 'ڕیاڵی سعوودی بۆ دینار', code: 'SAR/IQD', symbol: 'IQD', buy: 40300, sell: 40800, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/sa.png', category: 'global' },
-  { id: 'g6', name: 'دیناری کوەیتی بۆ دینار', code: 'KWD/IQD', symbol: 'IQD', buy: 492000, sell: 497000, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/kw.png', category: 'global' }
+  { id: 'g1', name: 'یۆرۆ بۆ دینار', code: 'EUR/IQD', symbol: 'IQD', buy: 159000, sell: 160500, change24h: 0.2, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/eu.png', category: 'global' },
+  { id: 'g2', name: 'پاوەند بۆ دینار', code: 'GBP/IQD', symbol: 'IQD', buy: 189500, sell: 191000, change24h: 0.3, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/gb.png', category: 'global' },
+  { id: 'g3', name: 'لیرەی تورکی بۆ دینار', code: 'TRY/IQD', symbol: 'IQD', buy: 4300, sell: 4450, change24h: 0.1, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/tr.png', category: 'global' },
+  { id: 'g4', name: 'درهەمی ئیماراتی بۆ دینار', code: 'AED/IQD', symbol: 'IQD', buy: 41000, sell: 41200, change24h: 0.1, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/ae.png', category: 'global' },
+  { id: 'g5', name: 'ڕیاڵی سعوودی بۆ دینار', code: 'SAR/IQD', symbol: 'IQD', buy: 40200, sell: 40350, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/sa.png', category: 'global' },
+  { id: 'g6', name: 'دیناری کوەیتی بۆ دینار', code: 'KWD/IQD', symbol: 'IQD', buy: 490000, sell: 492000, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/kw.png', category: 'global' }
 ];
 
 export const INITIAL_METALS: MetalRate[] = [
-  { id: 'm1', name: 'ئۆنسەی جیهانی', code: 'XAU', unit: '$', buy: 2685.20, sell: 2686.50, change24h: 0.45, lastUpdated: new Date().toISOString(), change: 'up', category: 'global', icon: 'https://cdn-icons-png.flaticon.com/512/261/261917.png' },
-  { id: 'm2', name: 'مسقاڵ عەیارە ٢٤', code: '24K', unit: 'د.ع', buy: 555000, sell: 565000, change24h: 1.2, lastUpdated: new Date().toISOString(), change: 'up', category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png' },
-  { id: 'm2_22', name: 'مسقاڵ عەیارە ٢٢', code: '22K', unit: 'د.ع', buy: 510000, sell: 520000, change24h: 0.9, lastUpdated: new Date().toISOString(), change: 'up', category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png' },
-  { id: 'm3', name: 'مسقاڵ عەیارە ٢١', code: '21K', unit: 'د.ع', buy: 485000, sell: 495000, change24h: 0.8, lastUpdated: new Date().toISOString(), change: 'up', category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png' },
-  { id: 'm4', name: 'مسقاڵ عەیارە ١٨', code: '18K', unit: 'د.ع', buy: 415000, sell: 425000, change24h: -0.2, lastUpdated: new Date().toISOString(), change: 'neutral', category: 'gold', icon: 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png' },
-  { id: 'm5', name: 'زیوی خاو (گرام)', code: 'Silver', unit: 'د.ع', buy: 1850, sell: 2150, change24h: -1.5, lastUpdated: new Date().toISOString(), change: 'down', category: 'silver', icon: 'https://cdn-icons-png.flaticon.com/512/2418/2418049.png' },
+  // --- GLOBAL BULLION (USD) ---
+  { id: 'm_xau', name: 'ئۆنسەی زێڕ (Global Gold)', code: 'XAU/USD', unit: '$', buy: 2745.50, sell: 2746.00, change24h: 0.45, lastUpdated: new Date().toISOString(), change: 'up', category: 'global', icon: 'https://cdn-icons-png.flaticon.com/512/261/261917.png' },
+  { id: 'm_xag', name: 'ئۆنسەی زیو (Global Silver)', code: 'XAG/USD', unit: '$', buy: 34.65, sell: 34.70, change24h: 1.2, lastUpdated: new Date().toISOString(), change: 'up', category: 'global', icon: 'https://cdn-icons-png.flaticon.com/512/2415/2415255.png' },
 ];
 
 export const INITIAL_CRYPTO: CryptoRate[] = [
