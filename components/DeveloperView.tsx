@@ -150,7 +150,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
   const toggleTab = (tabId: string) => {
     const currentTabs = config.enabledTabs || ['market', 'metals', 'crypto', 'converter', 'favorites', 'settings'];
     const newTabs = currentTabs.includes(tabId)
-      ? currentTabs.filter(t => t !== tabId)
+      ? currentTabs.filter(tabIdItem => tabIdItem !== tabId)
       : [...currentTabs, tabId];
     onUpdateConfig({ ...config, enabledTabs: newTabs });
   };
@@ -313,7 +313,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
               placeholder="Welcome Title..."
               value={config.translations?.[language]?.login_title || ''}
               onChange={(e) => {
-                const newTranslations = JSON.parse(JSON.stringify(config.translations));
+                const newTranslations = config.translations ? JSON.parse(JSON.stringify(config.translations)) : {};
                 if (!newTranslations[language]) newTranslations[language] = {};
                 newTranslations[language].login_title = e.target.value;
                 onUpdateConfig({...config, translations: newTranslations});

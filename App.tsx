@@ -38,12 +38,12 @@ const App: React.FC = () => {
   const [rates, setRates] = useState<CurrencyRate[]>(() => {
     try { 
       const saved = localStorage.getItem(`${STORAGE_KEY}_rates`); 
-      if (!saved) return INITIAL_RATES;
+      if (!saved || saved === 'undefined') return INITIAL_RATES;
       const data = JSON.parse(saved);
       if (!Array.isArray(data)) return INITIAL_RATES;
       // Ensure uniqueness by name and category (case-insensitive)
       return data.filter((v: any, i: number, a: any[]) => 
-        a.findIndex(t => t.name.toLowerCase().trim() === v.name.toLowerCase().trim() && t.category === v.category) === i
+        a.findIndex(tx => tx.name.toLowerCase().trim() === v.name.toLowerCase().trim() && tx.category === v.category) === i
       );
     } catch { return INITIAL_RATES; }
   });
@@ -51,38 +51,38 @@ const App: React.FC = () => {
     try { 
       if (INITIAL_METALS.length === 0) return [];
       const saved = localStorage.getItem(`${STORAGE_KEY}_metals`); 
-      if (!saved) return INITIAL_METALS;
+      if (!saved || saved === 'undefined') return INITIAL_METALS;
       const data = JSON.parse(saved);
       if (!Array.isArray(data)) return INITIAL_METALS;
       // Ensure uniqueness by name and category (case-insensitive)
       return data.filter((v: any, i: number, a: any[]) => 
-        a.findIndex(t => t.name.toLowerCase().trim() === v.name.toLowerCase().trim() && t.category === v.category) === i
+        a.findIndex(tx => tx.name.toLowerCase().trim() === v.name.toLowerCase().trim() && tx.category === v.category) === i
       );
     } catch { return INITIAL_METALS; }
   });
   const [cryptoRates, setCryptoRates] = useState<CryptoRate[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_crypto`); return saved ? JSON.parse(saved) : INITIAL_CRYPTO; } catch { return INITIAL_CRYPTO; }
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_crypto`); return saved && saved !== 'undefined' ? JSON.parse(saved) : INITIAL_CRYPTO; } catch { return INITIAL_CRYPTO; }
   });
   const [headlines, setHeadlines] = useState<Headline[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_news`); return saved ? JSON.parse(saved) : []; } catch { return []; }
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_news`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
   });
   const [config, setConfig] = useState<AppConfig>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_config`); return saved ? JSON.parse(saved) : DEFAULT_CONFIG; } catch { return DEFAULT_CONFIG; }
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_config`); return saved && saved !== 'undefined' ? JSON.parse(saved) : DEFAULT_CONFIG; } catch { return DEFAULT_CONFIG; }
   });
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_user`); return saved ? JSON.parse(saved) : null; } catch { return null; }
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_user`); return saved && saved !== 'undefined' ? JSON.parse(saved) : null; } catch { return null; }
   });
   const [favorites, setFavorites] = useState<string[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_favorites`); return saved ? JSON.parse(saved) : []; } catch { return []; }
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_favorites`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
   });
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_transactions`); return saved ? JSON.parse(saved) : []; } catch { return []; }
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_transactions`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
   });
   const [products, setProducts] = useState<Product[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_products`); return saved ? JSON.parse(saved) : []; } catch { return []; }
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_products`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
   });
   const [categories, setCategories] = useState<Category[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_categories`); return saved ? JSON.parse(saved) : []; } catch { return []; }
+    try { const saved = localStorage.getItem(`${STORAGE_KEY}_categories`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
   });
 
   const toggleFavorite = (id: string) => {
@@ -303,44 +303,114 @@ const App: React.FC = () => {
     prevCategoriesRef.current = next;
   }, [categories]);
 
-  // Sync Config to Supabase
+  // Sync Config to Supabase or API
   useEffect(() => {
-    if (!isSupabaseConfigured()) return;
-    (async () => {
-      const { id, ...rest } = config;
-      await supabase.from('config').upsert({ id: 1, ...rest });
-    })();
+    localStorage.setItem(`${STORAGE_KEY}_config`, JSON.stringify(config));
+    
+    if (isSupabaseConfigured()) {
+      (async () => {
+        const { id, ...rest } = config;
+        await supabase.from('config').upsert({ id: 1, ...rest });
+      })();
+    } else {
+      // Sync to local API
+      (async () => {
+        try {
+          await safeFetch('/api/config', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+          });
+        } catch (err) {
+          console.error("Failed to sync config to API:", err);
+        }
+      })();
+    }
   }, [config]);
+
+  // Helper for safe fetching with retries
+  const safeFetch = async (url: string, options: RequestInit = {}, retries = 3): Promise<Response> => {
+    let lastError: any;
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache',
+            ...options.headers,
+          }
+        });
+        return response;
+      } catch (err) {
+        lastError = err;
+        if (i < retries - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+      }
+    }
+    throw lastError;
+  };
 
   // Fetch users from Supabase or API
   useEffect(() => {
     const fetchUsers = async () => {
       if (isSupabaseConfigured()) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*');
-        
-        if (!error && data && Array.isArray(data)) {
-          setUsers(data);
-          return;
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('*');
+          
+          if (!error && data && Array.isArray(data)) {
+            setUsers(data);
+            return;
+          }
+          if (error) console.warn("Supabase users fetch error:", error);
+        } catch (e) {
+          console.warn("Supabase users fetch exception:", e);
         }
       }
 
       // Fallback to local API if Supabase is not configured or fails
       try {
-        const response = await fetch('/api/users');
+        const response = await safeFetch('/api/users');
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data)) {
             setUsers(data);
           }
+        } else {
+          console.warn(`Local API returned status ${response.status} for users`);
         }
       } catch (err) {
-        console.error("Failed to fetch users:", err);
+        console.error("Failed to fetch users from local API:", err);
+      }
+    };
+
+    const fetchConfig = async () => {
+      if (isSupabaseConfigured()) return;
+      try {
+        const response = await safeFetch('/api/config');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && Object.keys(data).length > 0) {
+            // Only update if different to avoid infinite loops if not careful
+            // But since we use a functional update or check, it should be fine
+            setConfig(prev => {
+              if (JSON.stringify(prev) !== JSON.stringify(data)) {
+                return { ...prev, ...data };
+              }
+              return prev;
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch config from API:", err);
       }
     };
     
     fetchUsers();
+    fetchConfig();
     
     // Real-time subscription for Supabase
     let subscription: any;
@@ -354,7 +424,10 @@ const App: React.FC = () => {
     }
 
     // Poll as backup if not using Supabase
-    const interval = setInterval(fetchUsers, 10000);
+    const interval = setInterval(() => {
+      fetchUsers();
+      fetchConfig();
+    }, 10000);
     
     return () => {
       clearInterval(interval);
@@ -370,7 +443,7 @@ const App: React.FC = () => {
       return;
     }
     try {
-      await fetch('/api/users', {
+      await safeFetch('/api/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedUsers)
@@ -387,46 +460,59 @@ const App: React.FC = () => {
   // Fetch all data from Supabase or LocalStorage
   useEffect(() => {
     const fetchData = async () => {
-      if (!isSupabaseConfigured()) return;
+      if (isSupabaseConfigured()) {
+        try {
+          // Fetch Rates
+          const { data: ratesData, error: ratesError } = await supabase.from('rates').select('*');
+          if (ratesError) throw ratesError;
+          if (ratesData && ratesData.length > 0) setRates(ratesData);
 
-      try {
-        // Fetch Rates
-        const { data: ratesData, error: ratesError } = await supabase.from('rates').select('*');
-        if (ratesError) throw ratesError;
-        if (ratesData && ratesData.length > 0) setRates(ratesData);
+          // Fetch Metals
+          const { data: metalsData } = await supabase.from('metals').select('*');
+          if (metalsData && metalsData.length > 0) setMetals(metalsData);
 
-        // Fetch Metals
-        const { data: metalsData } = await supabase.from('metals').select('*');
-        if (metalsData && metalsData.length > 0) setMetals(metalsData);
+          // Fetch Crypto
+          const { data: cryptoData } = await supabase.from('crypto').select('*');
+          if (cryptoData && cryptoData.length > 0) setCryptoRates(cryptoData);
 
-        // Fetch Crypto
-        const { data: cryptoData } = await supabase.from('crypto').select('*');
-        if (cryptoData && cryptoData.length > 0) setCryptoRates(cryptoData);
+          // Fetch News
+          const { data: newsData } = await supabase.from('news').select('*').order('date', { ascending: false });
+          if (newsData && newsData.length > 0) setHeadlines(newsData);
 
-        // Fetch News
-        const { data: newsData } = await supabase.from('news').select('*').order('date', { ascending: false });
-        if (newsData && newsData.length > 0) setHeadlines(newsData);
+          // Fetch Config
+          const { data: configData } = await supabase.from('config').select('*').single();
+          if (configData) setConfig(configData);
 
-        // Fetch Config
-        const { data: configData } = await supabase.from('config').select('*').single();
-        if (configData) setConfig(configData);
+          // Fetch Transactions
+          const { data: transactionsData } = await supabase.from('transactions').select('*');
+          if (transactionsData && transactionsData.length > 0) setTransactions(transactionsData);
 
-        // Fetch Transactions
-        const { data: transactionsData } = await supabase.from('transactions').select('*');
-        if (transactionsData && transactionsData.length > 0) setTransactions(transactionsData);
+          // Fetch Products
+          const { data: productsData } = await supabase.from('products').select('*');
+          if (productsData && productsData.length > 0) setProducts(productsData);
 
-        // Fetch Products
-        const { data: productsData } = await supabase.from('products').select('*');
-        if (productsData && productsData.length > 0) setProducts(productsData);
+          // Fetch Categories
+          const { data: categoriesData } = await supabase.from('categories').select('*');
+          if (categoriesData && categoriesData.length > 0) setCategories(categoriesData);
 
-        // Fetch Categories
-        const { data: categoriesData } = await supabase.from('categories').select('*');
-        if (categoriesData && categoriesData.length > 0) setCategories(categoriesData);
-
-        setDbConnected(true);
-      } catch (err) {
-        console.error("Supabase fetch error:", err);
-        setDbConnected(false);
+          setDbConnected(true);
+        } catch (err) {
+          console.error("Supabase fetch error:", err);
+          setDbConnected(false);
+        }
+      } else {
+        // Fetch config from local API on initial load
+        try {
+          const response = await safeFetch('/api/config');
+          if (response.ok) {
+            const data = await response.json();
+            if (data && Object.keys(data).length > 0) {
+              setConfig(prev => ({ ...prev, ...data }));
+            }
+          }
+        } catch (err) {
+          console.error("Local API config fetch error:", err);
+        }
       }
     };
 
@@ -484,7 +570,7 @@ const App: React.FC = () => {
     }
 
     try {
-      const response = await fetch('/api/users', {
+      const response = await safeFetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUser)
@@ -605,8 +691,8 @@ const App: React.FC = () => {
 
                 // Notify on significant gold changes (> 0.50 USD)
                 if (Math.abs(change) > 0.50 && m.category === 'gold') {
-                   const action = change > 0 ? 'بەرزبووەوە' : 'دابەزی';
-                   addNotification(`نرخی ${m.name} ${action} بە بڕی $${Math.abs(change).toFixed(2)}`, changeType, m.id);
+                   const action = change > 0 ? t('increased') : t('decreased');
+                   addNotification(`${t('price_of')} ${m.name} ${action} ${t('by_amount')} $${Math.abs(change).toFixed(2)}`, changeType, m.id);
                 }
 
                 return {
@@ -759,7 +845,7 @@ const App: React.FC = () => {
   };
 
   if (!currentUser) {
-    return <Login onLogin={setCurrentUser} onRegister={handleRegister} onSwitch={()=>{}} t={t} config={config} />; 
+    return <Login onLogin={setCurrentUser} onRegister={handleRegister} onSwitch={()=>{}} t={t} config={config} />;  
   }
 
   return (
@@ -847,7 +933,7 @@ const App: React.FC = () => {
             case 'converter': return <Converter rates={rates} t={t} />;
             case 'favorites': return <FavoritesView rates={rates} metals={metals} cryptoRates={cryptoRates} favorites={favorites} toggleFavorite={toggleFavorite} t={t} config={config} />;
             case 'admin': return <AdminDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} users={users} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateUsers={handleUpdateUsers} onUpdateHeadlines={setHeadlines} t={t} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} />;
-            case 'accounts': return <AccountsView transactions={transactions} onAddTransaction={(t) => setTransactions(prev => [...prev, t])} onUpdateTransaction={(updatedT) => setTransactions(prev => prev.map(t => t.id === updatedT.id ? updatedT : t))} onDeleteTransaction={(id) => setTransactions(prev => prev.filter(t => t.id !== id))} products={products} onUpdateProducts={setProducts} categories={categories} onUpdateCategories={setCategories} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} t={t} onBack={() => setView('settings')} />;
+            case 'accounts': return <AccountsView transactions={transactions} onAddTransaction={(newTx) => setTransactions(prev => [...prev, newTx])} onUpdateTransaction={(updatedTx) => setTransactions(prev => prev.map(tx => tx.id === updatedTx.id ? updatedTx : tx))} onDeleteTransaction={(id) => setTransactions(prev => prev.filter(tx => tx.id !== id))} products={products} onUpdateProducts={setProducts} categories={categories} onUpdateCategories={setCategories} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} t={t} onBack={() => setView('settings')} />;
             case 'kargeri': return <KargeriDashboard users={users} t={t} config={config} />;
             case 'editor': return <EditorDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateHeadlines={setHeadlines} t={t} config={config} onUpdateConfig={setConfig} currentUser={currentUser!} />;
             case 'developer': return <DeveloperView config={config} onUpdateConfig={setConfig} rates={rates} metals={metals} cryptoRates={cryptoRates} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateHeadlines={setHeadlines} t={t} language={language} />;

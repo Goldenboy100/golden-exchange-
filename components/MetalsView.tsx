@@ -34,15 +34,15 @@ const MetalsView: React.FC<MetalsViewProps> = ({ metals, t, favorites, toggleFav
       <div className="flex flex-col md:flex-row justify-between items-end gap-6 px-4">
         <div className="text-right">
           <h2 className="text-4xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter flex items-center gap-3 justify-end">
-            <Globe className="text-amber-500" size={32} /> بۆرسەی جیهانی
+            <Globe className="text-amber-500" size={32} /> {t('global_borsa')}
           </h2>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-2 opacity-60 italic">Global Spot Market Rates (XAU/XAG)</p>
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mt-2 opacity-60 italic">{t('global_spot_market_rates')}</p>
         </div>
         
         <div className="relative w-full md:w-80">
           <input 
             type="text" 
-            placeholder="گەڕان لە بۆرسە..."
+            placeholder={t('search_borsa')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/5 p-4 pr-12 rounded-2xl outline-none focus:ring-4 focus:ring-amber-500/10 transition-all font-bold text-sm shadow-xl dark:text-white placeholder:text-slate-400"
@@ -55,9 +55,9 @@ const MetalsView: React.FC<MetalsViewProps> = ({ metals, t, favorites, toggleFav
       <div className="space-y-6 relative z-10">
         <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[3rem] border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden">
            <div className="grid grid-cols-12 gap-2 bg-white/20 dark:bg-white/5 p-8 border-b border-white/10 dark:border-white/5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em]">
-              <div className="col-span-6 pr-1">ناوی کانزا / کۆد</div>
-              <div className="col-span-3 text-center text-emerald-600 dark:text-emerald-500">کڕین (Buy)</div>
-              <div className="col-span-3 text-center text-rose-600 dark:text-rose-500">فرۆشتن (Sell)</div>
+              <div className="col-span-6 pr-1">{t('metal_name_code')}</div>
+              <div className="col-span-3 text-center text-emerald-600 dark:text-emerald-500">{t('buy')}</div>
+              <div className="col-span-3 text-center text-rose-600 dark:text-rose-500">{t('sell')}</div>
            </div>
            
            <div className="p-4 space-y-4">
@@ -96,14 +96,14 @@ const MetalsView: React.FC<MetalsViewProps> = ({ metals, t, favorites, toggleFav
                     <span className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tabular-nums tracking-tighter drop-shadow-md group-hover:scale-105 transition-transform">
                       {metal.buy.toLocaleString()}
                     </span>
-                    <span className="text-[9px] font-black text-slate-500 uppercase mt-2 tracking-[0.3em] opacity-50">{metal.unit} / OUNCE</span>
+                    <span className="text-[9px] font-black text-slate-500 uppercase mt-2 tracking-[0.3em] opacity-50">{metal.unit} / {t('ounce')}</span>
                   </div>
 
                   <div className="col-span-3 flex flex-col items-center justify-center">
                     <span className="text-2xl md:text-3xl font-black text-amber-500 tabular-nums tracking-tighter drop-shadow-md group-hover:scale-105 transition-transform">
                       {metal.sell.toLocaleString()}
                     </span>
-                    <span className="text-[9px] font-black text-slate-500 uppercase mt-2 tracking-[0.3em] opacity-50">{metal.unit} / OUNCE</span>
+                    <span className="text-[9px] font-black text-slate-500 uppercase mt-2 tracking-[0.3em] opacity-50">{metal.unit} / {t('ounce')}</span>
                   </div>
                 </div>
               ))}
@@ -111,7 +111,7 @@ const MetalsView: React.FC<MetalsViewProps> = ({ metals, t, favorites, toggleFav
               {borsaMetals.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 opacity-50">
                   <Activity size={60} className="text-slate-200 dark:text-slate-800 mb-4" />
-                  <p className="font-black text-[12px] uppercase tracking-[0.5em] text-slate-400 italic">داتاکە نەدۆزرایەوە</p>
+                  <p className="font-black text-[12px] uppercase tracking-[0.5em] text-slate-400 italic">{t('no_data_found')}</p>
                 </div>
               )}
            </div>
@@ -125,8 +125,8 @@ const MetalsView: React.FC<MetalsViewProps> = ({ metals, t, favorites, toggleFav
                <TrendingUp size={28} />
             </div>
             <div>
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Live Market Sync</p>
-               <p className="text-sm font-bold dark:text-white leading-relaxed italic">ئەم نرخانە ڕاستەوخۆ لە بۆرسەی جیهانییەوە وەردەگیرێن و بەردەوام نوێ دەبنەوە.</p>
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('live_market_sync')}</p>
+               <p className="text-sm font-bold dark:text-white leading-relaxed italic">{t('live_market_sync_info')}</p>
             </div>
          </div>
          <div className="bg-amber-500/10 dark:bg-amber-500/5 backdrop-blur-xl p-8 rounded-[2.5rem] border border-amber-500/20 flex items-center gap-6 shadow-xl group hover:bg-amber-500/10 transition-all">
@@ -134,8 +134,8 @@ const MetalsView: React.FC<MetalsViewProps> = ({ metals, t, favorites, toggleFav
                <Globe size={28} />
             </div>
             <div>
-               <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Global Standard</p>
-               <p className="text-sm font-bold dark:text-amber-500 leading-relaxed italic uppercase tracking-tight">XAU/USD & XAG/USD Real-time connectivity active.</p>
+               <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">{t('global_standard')}</p>
+               <p className="text-sm font-bold dark:text-amber-500 leading-relaxed italic uppercase tracking-tight">{t('global_standard_info')}</p>
             </div>
          </div>
       </div>

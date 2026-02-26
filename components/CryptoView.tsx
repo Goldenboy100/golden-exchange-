@@ -19,7 +19,7 @@ const CryptoView: React.FC<CryptoViewProps> = ({ cryptoRates, t, config, favorit
           {t('crypto')}
         </h2>
         <div className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-widest">
-          Live Market
+          {t('live_market')}
         </div>
       </div>
 
@@ -78,7 +78,7 @@ const CryptoView: React.FC<CryptoViewProps> = ({ cryptoRates, t, config, favorit
               <div className="text-right">
                 <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 opacity-50">{t('last_update')}</p>
                 <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 italic">
-                  {new Date(crypto.lastUpdated).toLocaleTimeString()}
+                  {new Date(crypto.lastUpdated).toLocaleTimeString('ku-IQ')}
                 </p>
               </div>
             </div>

@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Settings, ChevronLeft, Moon, Languages, ShieldCheck, LogOut, Check, User as UserIcon, Crown, Shield, Gem, Edit2, Cpu, DollarSign } from 'lucide-react';
+import { Settings, ChevronLeft, Moon, Languages, ShieldCheck, LogOut, Check, User as UserIcon, Crown, Shield, Gem, Pen, Cpu, DollarSign } from 'lucide-react';
 import { User, ViewMode, ThemeMode, LanguageCode, AppConfig } from '../types.ts';
 
 interface SettingsViewProps {
@@ -64,7 +64,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       <div className="flex justify-between items-center px-4 mb-4">
         <div>
           <h1 className="text-3xl font-black dark:text-white italic tracking-tighter mb-1 uppercase">{t('settings')}</h1>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">System Preferences</p>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">{t('system_preferences')}</p>
         </div>
         <div className="p-4 bg-primary/10 text-primary rounded-2xl shadow-lg">
           <Settings size={28} />
@@ -83,7 +83,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               onClick={() => avatarInputRef.current?.click()}
               className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <Edit2 size={20} />
+              <Pen size={20} />
             </button>
             <input type="file" accept="image/*" ref={avatarInputRef} onChange={handleAvatarChange} className="hidden" />
           </div>
@@ -104,7 +104,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             ) : (
               <div className="flex items-center gap-2">
                 <h2 className="font-black text-xl text-slate-900 dark:text-white">{currentUser.name}</h2>
-                <button onClick={() => setIsEditingName(true)} className="text-slate-400 hover:text-primary"><Edit2 size={14} /></button>
+                <button onClick={() => setIsEditingName(true)} className="text-slate-400 hover:text-primary"><Pen size={14} /></button>
               </div>
             )}
             <div className="flex items-center gap-2 mt-1">
@@ -130,7 +130,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
               <div className="text-right">
                 <p className="font-black text-lg text-slate-800 dark:text-slate-200 uppercase">{t('interface')}</p>
-                <p className="text-[10px] font-bold text-slate-400 mt-0.5">{t(theme)} Mode Active</p>
+                <p className="text-[10px] font-bold text-slate-400 mt-0.5">{t(theme + '_mode')} Active</p>
               </div>
             </div>
             <ChevronLeft size={18} className="text-slate-300" />
@@ -162,8 +162,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                   <DollarSign size={20} />
                 </div>
                 <div className="text-right">
-                  <p className="font-black text-lg text-slate-800 dark:text-slate-200 uppercase">حسابات و مامەڵەکان</p>
-                  <p className="text-[10px] font-bold text-amber-500 mt-0.5">Premium Ledger Feature</p>
+                  <p className="font-black text-lg text-slate-800 dark:text-slate-200 uppercase">{t('accounts_transactions')}</p>
+                  <p className="text-[10px] font-bold text-amber-500 mt-0.5">{t('premium_ledger_feature')}</p>
                 </div>
               </div>
               <ChevronLeft size={18} className="text-slate-300" />
@@ -178,8 +178,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                   <Crown size={20} />
                 </div>
                 <div className="text-right">
-                  <p className="font-black text-lg text-slate-800 dark:text-slate-200 uppercase">کڕینی VIP</p>
-                  <p className="text-[10px] font-bold text-amber-500 mt-0.5">تایبەتمەندییەکان بەدەستبهێنە</p>
+                  <p className="font-black text-lg text-slate-800 dark:text-slate-200 uppercase">{t('buy_vip')}</p>
+                  <p className="text-[10px] font-bold text-amber-500 mt-0.5">{t('get_features')}</p>
                 </div>
               </div>
               <ChevronLeft size={18} className="text-slate-300" />
@@ -204,22 +204,22 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                <div className="w-20 h-20 bg-amber-500 rounded-3xl mx-auto flex items-center justify-center text-white shadow-xl shadow-amber-500/30 mb-4">
                  <Crown size={40} />
                </div>
-               <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter">VIP Membership</h2>
-               <p className="text-amber-500 font-black text-lg mt-2">20,000 IQD / Lifetime</p>
+               <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter">{t('vip_membership')}</h2>
+               <p className="text-amber-500 font-black text-lg mt-2">20,000 IQD / {t('lifetime')}</p>
              </div>
 
              <div className="space-y-4 mb-8">
                {[
-                 'تۆمارکردنی بێسنووری کاڵا',
-                 'هەژمارکردنی قازانج و زیان',
-                 'بەڕێوەبردنی کۆگا (Inventory)',
-                 'پشتگیری تەکنیکی 24/7'
+                 'unlimited_product_registration',
+                 'profit_loss_calculation',
+                 'inventory_management',
+                 '24_7_technical_support'
                ].map((feature, i) => (
                  <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
                    <div className="p-1 bg-emerald-500 rounded-full text-white">
                      <Check size={12} strokeWidth={4} />
                    </div>
-                   <span className="font-bold text-sm text-slate-700 dark:text-slate-300">{feature}</span>
+                   <span className="font-bold text-sm text-slate-700 dark:text-slate-300">{t(feature)}</span>
                  </div>
                ))}
              </div>
@@ -230,23 +230,23 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                  className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-600/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                >
                  <DollarSign size={24} />
-                 پارەدان بە FIB
+                 {t('pay_with_fib')}
                </button>
                
                <button 
                  onClick={() => {
-                   const subject = encodeURIComponent("VIP Activation Request");
-                   const body = encodeURIComponent(`I have sent 20,000 IQD via FIB.\nMy Email: ${currentUser?.email}\nMy ID: ${currentUser?.id}`);
+                   const subject = encodeURIComponent(t('vip_activation_request'));
+                   const body = encodeURIComponent(`${t('fib_payment_message')}\nMy Email: ${currentUser?.email}\nMy ID: ${currentUser?.id}`);
                    window.open(`mailto:emily@example.com?subject=${subject}&body=${body}`, '_blank');
                  }}
                  className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-2xl font-black text-lg shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                >
-                 <span className="truncate">ئاگادارکردنەوەی ئێمیلی (Email)</span>
+                 <span className="truncate">{t('email_notification')}</span>
                </button>
              </div>
              
              <p className="text-center text-[10px] text-slate-400 mt-4 font-bold">
-               ژمارەی هەژماری FIB: 07519055494
+               {t('fib_account_number')}: 07519055494
              </p>
           </div>
         </div>
@@ -258,7 +258,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="fixed inset-0 z-[500] flex items-end justify-center">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onClick={() => setShowLanguageModal(false)} />
           <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-t-[3rem] p-10 shadow-2xl animate-in slide-in-from-bottom-full duration-500">
-             <h2 className="text-2xl font-black text-center mb-8 dark:text-white uppercase italic tracking-tighter">System Language</h2>
+             <h2 className="text-2xl font-black text-center mb-8 dark:text-white uppercase italic tracking-tighter">{t('system_language')}</h2>
              <div className="space-y-3">
                 {['ku', 'ar', 'en'].map(l => (
                   <button 
@@ -280,7 +280,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="fixed inset-0 z-[500] flex items-end justify-center">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onClick={() => setShowThemeModal(false)} />
           <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-t-[3rem] p-10 shadow-2xl animate-in slide-in-from-bottom-full duration-500">
-             <h2 className="text-2xl font-black text-center mb-8 dark:text-white uppercase italic tracking-tighter">Interface Theme</h2>
+             <h2 className="text-2xl font-black text-center mb-8 dark:text-white uppercase italic tracking-tighter">{t('interface_theme')}</h2>
              <div className="space-y-3">
                 {['light', 'dark', 'system'].map(opt => (
                   <button 
@@ -288,7 +288,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                     onClick={() => {setTheme(opt as ThemeMode); setShowThemeModal(false);}} 
                     className={`w-full p-6 flex items-center justify-between rounded-2xl font-black transition-all ${theme === opt ? 'bg-primary text-white shadow-xl' : 'bg-slate-50 dark:bg-slate-800 dark:text-white'}`}
                   >
-                    <span className="text-base uppercase">{opt} MODE</span>
+                    <span className="text-base uppercase">{t(opt + '_mode')}</span>
                     {theme === opt && <Check size={24} />}
                   </button>
                 ))}

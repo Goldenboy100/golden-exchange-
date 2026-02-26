@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useRef } from 'react';
-import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, Package, Calendar, FileText, ChevronRight, Image as ImageIcon, Upload, X, LayoutGrid, List, ShoppingCart, Tag, Search, Filter, Printer, CheckCircle, Clock, User as UserIcon, CalendarClock, Edit3, Check, Home, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, Package, Calendar, FileText, ChevronRight, Image as ImageIcon, Upload, X, LayoutGrid, List, ShoppingCart, Tag, Search, Filter, Printer, CheckCircle, Clock, User as UserIcon, CalendarClock, Edit3, Check, Home, RefreshCw, BarChart3, Users, Download, AlertTriangle } from 'lucide-react';
 import { Transaction, User, AppConfig, Product, Category } from '../types.ts';
 
 interface AccountsViewProps {
@@ -34,11 +34,12 @@ const AccountsView: React.FC<AccountsViewProps> = ({
   t,
   onBack
 }) => {
-  const [activeTab, setActiveTab] = useState<'transactions' | 'inventory' | 'pos'>('transactions');
+  const [activeTab, setActiveTab] = useState<'transactions' | 'inventory' | 'pos' | 'reports' | 'customers'>('transactions');
   const [showAddForm, setShowAddForm] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'buy' | 'sell' | 'expense' | 'rent' | 'debt'>('all');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -71,11 +72,11 @@ const AccountsView: React.FC<AccountsViewProps> = ({
 
   const [productData, setProductData] = useState({
     name: '',
-    defaultPrice: '',
-    costPrice: '',
-    quantity: '',
+    defaultPrice: '' as string | number,
+    costPrice: '' as string | number,
+    quantity: '' as string | number,
     barcode: '',
-    wholesalePrice: '',
+    wholesalePrice: '' as string | number,
     expiryDate: '',
     socialLink: '',
     note: '',
@@ -109,34 +110,50 @@ const AccountsView: React.FC<AccountsViewProps> = ({
 
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) return;
-    if (categories.some(c => c.name === newCategoryName.trim())) return;
+    
+    if (editingCategoryId) {
+      // Update existing category
+      const updatedCategories = categories.map(c => 
+        c.id === editingCategoryId ? { ...c, name: newCategoryName.trim() } : c
+      );
+      onUpdateCategories(updatedCategories);
+      setEditingCategoryId(null);
+    } else {
+      // Add new category
+      if (categories.some(c => c.name === newCategoryName.trim())) return;
 
-    const newCategory: Category = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: newCategoryName.trim(),
-      color: '#' + Math.floor(Math.random()*16777215).toString(16)
-    };
-    onUpdateCategories([...categories, newCategory]);
+      const newCategory: Category = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: newCategoryName.trim(),
+        color: '#' + Math.floor(Math.random()*16777215).toString(16)
+      };
+      onUpdateCategories([...categories, newCategory]);
+    }
     setNewCategoryName('');
   };
 
+  const handleEditCategory = (category: Category) => {
+    setNewCategoryName(category.name);
+    setEditingCategoryId(category.id);
+  };
+
   const handleDeleteCategory = (id: string) => {
-    if (window.confirm('دڵنیای لە سڕینەوەی ئەم بەشە؟')) {
+    if (window.confirm(t('confirm_delete_category'))) {
       onUpdateCategories(categories.filter(c => c.id !== id));
     }
   };
 
   const userTransactions = useMemo(() => 
     transactions
-      .filter(t => t.userId === currentUser.id)
-      .filter(t => {
-        const matchesSearch = t.itemName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                              (t.customerName && t.customerName.toLowerCase().includes(searchTerm.toLowerCase()));
+      .filter(tx => tx.userId === currentUser.id)
+      .filter(tx => {
+        const matchesSearch = tx.itemName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              (tx.customerName && tx.customerName.toLowerCase().includes(searchTerm.toLowerCase()));
         const matchesFilter = filterType === 'all' 
           ? true 
           : filterType === 'debt' 
-            ? t.status === 'pending'
-            : t.type === filterType;
+            ? tx.status === 'pending'
+            : tx.type === filterType;
         return matchesSearch && matchesFilter;
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
@@ -155,14 +172,14 @@ const AccountsView: React.FC<AccountsViewProps> = ({
     let totalRent = 0;
     let manualProfitTotal = 0;
     
-    userTransactions.forEach(t => {
-      if (t.type === 'buy') totalBuy += t.total;
-      else if (t.type === 'sell') totalSell += t.total;
-      else if (t.type === 'expense') totalExpense += t.total;
-      else if (t.type === 'rent') totalRent += t.total;
+    userTransactions.forEach(tx => {
+      if (tx.type === 'buy') totalBuy += tx.total;
+      else if (tx.type === 'sell') totalSell += tx.total;
+      else if (tx.type === 'expense') totalExpense += tx.total;
+      else if (tx.type === 'rent') totalRent += tx.total;
       
-      if (t.profit !== undefined) {
-        manualProfitTotal += t.profit;
+      if (tx.profit !== undefined) {
+        manualProfitTotal += tx.profit;
       }
     });
 
@@ -183,14 +200,14 @@ const AccountsView: React.FC<AccountsViewProps> = ({
 
   const selectedProductStats = useMemo(() => {
     if (!selectedProduct) return null;
-    const productTransactions = userTransactions.filter(t => t.itemName === selectedProduct.name);
+    const productTransactions = userTransactions.filter(tx => tx.itemName === selectedProduct.name);
     
     let totalBuy = 0;
     let totalSell = 0;
     
-    productTransactions.forEach(t => {
-      if (t.type === 'buy') totalBuy += t.total;
-      if (t.type === 'sell') totalSell += t.total;
+    productTransactions.forEach(tx => {
+      if (tx.type === 'buy') totalBuy += tx.total;
+      if (tx.type === 'sell') totalSell += tx.total;
     });
 
     return {
@@ -200,6 +217,87 @@ const AccountsView: React.FC<AccountsViewProps> = ({
       transactions: productTransactions
     };
   }, [selectedProduct, userTransactions]);
+
+  const customerStats = useMemo(() => {
+    const customers: Record<string, { totalTransactions: number, totalAmount: number, debt: number, lastTransaction: string }> = {};
+    
+    userTransactions.forEach(tx => {
+      if (!tx.customerName) return;
+      const name = tx.customerName;
+      if (!customers[name]) {
+        customers[name] = { totalTransactions: 0, totalAmount: 0, debt: 0, lastTransaction: tx.date };
+      }
+      
+      customers[name].totalTransactions += 1;
+      if (tx.type === 'sell') {
+        customers[name].totalAmount += tx.total;
+        if (tx.status === 'pending') {
+          customers[name].debt += tx.total;
+        }
+      }
+      
+      if (new Date(tx.date) > new Date(customers[name].lastTransaction)) {
+        customers[name].lastTransaction = tx.date;
+      }
+    });
+    
+    return Object.entries(customers).map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.debt - a.debt);
+  }, [userTransactions]);
+
+  const inventoryAlerts = useMemo(() => {
+    const lowStock = userProducts.filter(p => p.quantity !== undefined && p.quantity <= 5);
+    const expired = userProducts.filter(p => p.expiryDate && new Date(p.expiryDate) < new Date());
+    return { lowStock, expired };
+  }, [userProducts]);
+
+  const reportStats = useMemo(() => {
+    const now = new Date();
+    const startOfDay = new Date(now.setHours(0,0,0,0)).toISOString();
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).toISOString();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+    const getStatsForRange = (start: string) => {
+      let buy = 0, sell = 0, expense = 0, rent = 0;
+      userTransactions.filter(tx => tx.date >= start).forEach(tx => {
+        if (tx.type === 'buy') buy += tx.total;
+        else if (tx.type === 'sell') sell += tx.total;
+        else if (tx.type === 'expense') expense += tx.total;
+        else if (tx.type === 'rent') rent += tx.total;
+      });
+      return { buy, sell, expense, rent, profit: sell - buy - expense - rent };
+    };
+
+    return {
+      daily: getStatsForRange(startOfDay),
+      weekly: getStatsForRange(startOfWeek),
+      monthly: getStatsForRange(startOfMonth)
+    };
+  }, [userTransactions]);
+
+  const exportToCSV = () => {
+    const headers = ["Date", "Item", "Type", "Amount", "Price", "Total", "Customer", "Status"];
+    const rows = userTransactions.map(tx => [
+      new Date(tx.date).toLocaleDateString(),
+      tx.itemName,
+      tx.type,
+      tx.amount,
+      tx.price,
+      tx.total,
+      tx.customerName || "",
+      tx.status || ""
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `transactions_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'transaction' | 'product') => {
     const file = e.target.files?.[0];
@@ -308,9 +406,10 @@ const AccountsView: React.FC<AccountsViewProps> = ({
   };
 
   const handleEditProduct = (product: Product) => {
+    setEditingProductId(product.id);
     setProductData({
-      name: product.name,
-      defaultPrice: product.defaultPrice.toString(),
+      name: product.name || '',
+      defaultPrice: product.defaultPrice?.toString() || '',
       costPrice: product.costPrice?.toString() || '',
       quantity: product.quantity?.toString() || '',
       barcode: product.barcode || '',
@@ -321,7 +420,6 @@ const AccountsView: React.FC<AccountsViewProps> = ({
       image: product.image || '',
       category: product.category || ''
     });
-    setEditingProductId(product.id);
     setShowProductForm(true);
   };
 
@@ -401,9 +499,9 @@ const AccountsView: React.FC<AccountsViewProps> = ({
     onUpdateProducts(products.filter(p => p.id !== id));
   };
 
-  const handleMarkAsPaid = (t: Transaction) => {
+  const handleMarkAsPaid = (tx: Transaction) => {
     if (window.confirm('دڵنیای کە ئەم قەرزە وەرگیراوە؟')) {
-      onUpdateTransaction({ ...t, status: 'paid' });
+      onUpdateTransaction({ ...tx, status: 'paid' });
     }
   };
 
@@ -443,8 +541,8 @@ const AccountsView: React.FC<AccountsViewProps> = ({
               )}
             </div>
             <div className="flex-1 text-center md:text-right space-y-2">
-              <div className="text-sm font-black text-slate-400 uppercase tracking-widest">نرخی ئێستا</div>
-              <div className="text-3xl font-black text-primary">{selectedProduct.defaultPrice.toLocaleString()} IQD</div>
+              <div className="text-sm font-black text-slate-400 uppercase tracking-widest">{t('current_price')}</div>
+              <div className="text-3xl font-black text-primary">{selectedProduct.defaultPrice.toLocaleString()} {t('iqd')}</div>
               {selectedProduct.category && (
                 <div className="inline-block px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-500">
                   {selectedProduct.category}
@@ -460,7 +558,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
               </button>
               <button 
                 onClick={() => {
-                  if (window.confirm('دڵنیای لە سڕینەوەی ئەم کاڵایە؟')) {
+                  if (window.confirm(t('confirm_delete_product'))) {
                     handleDeleteProduct(selectedProduct.id);
                     setSelectedProductId(null);
                   }
@@ -477,24 +575,24 @@ const AccountsView: React.FC<AccountsViewProps> = ({
           <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 dark:border-white/5 shadow-xl">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-rose-500/10 rounded-xl text-rose-500"><TrendingDown size={20} /></div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">کۆی خەرجی (کڕین)</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('total_spending_buy')}</span>
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{selectedProductStats.totalBuy.toLocaleString()} IQD</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{selectedProductStats.totalBuy.toLocaleString()} {t('iqd')}</p>
           </div>
           <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 dark:border-white/5 shadow-xl">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-500"><TrendingUp size={20} /></div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">کۆی داهات (فرۆشتن)</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('total_income_sell')}</span>
             </div>
-            <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{selectedProductStats.totalSell.toLocaleString()} IQD</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{selectedProductStats.totalSell.toLocaleString()} {t('iqd')}</p>
           </div>
           <div className={`p-6 rounded-[2rem] border shadow-xl backdrop-blur-xl ${selectedProductStats.profit >= 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20'}`}>
             <div className="flex items-center gap-3 mb-2">
               <div className={`p-2 rounded-xl ${selectedProductStats.profit >= 0 ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}`}><DollarSign size={20} /></div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">قازانج</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('profit')}</span>
             </div>
             <p className={`text-2xl font-black tabular-nums ${selectedProductStats.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-              {selectedProductStats.profit >= 0 ? '+' : ''}{selectedProductStats.profit.toLocaleString()} IQD
+              {selectedProductStats.profit >= 0 ? '+' : ''}{selectedProductStats.profit.toLocaleString()} {t('iqd')}
             </p>
           </div>
         </div>
@@ -518,32 +616,32 @@ const AccountsView: React.FC<AccountsViewProps> = ({
 
         <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden">
           <div className="px-8 py-6 border-b border-white/10 flex items-center justify-between">
-            <h3 className="text-sm font-black text-primary uppercase tracking-widest italic">مێژووی مامەڵەکان</h3>
+            <h3 className="text-sm font-black text-primary uppercase tracking-widest italic">{t('transaction_history')}</h3>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {selectedProductStats.transactions.length === 0 ? (
               <div className="py-20 text-center opacity-30">
                 <FileText size={48} className="mx-auto mb-4" />
-                <p className="font-black text-xs uppercase tracking-widest">هیچ مامەڵەیەک نییە</p>
+                <p className="font-black text-xs uppercase tracking-widest">{t('no_transactions_found')}</p>
               </div>
             ) : (
-              selectedProductStats.transactions.map(t => (
-                <div key={t.id} className="p-6 hover:bg-white/10 dark:hover:bg-white/[0.05] transition-all">
+              selectedProductStats.transactions.map(tx => (
+                <div key={tx.id} className="p-6 hover:bg-white/10 dark:hover:bg-white/[0.05] transition-all">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${t.type === 'buy' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
-                        {t.type === 'buy' ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${tx.type === 'buy' ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+                        {tx.type === 'buy' ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                       </div>
                       <div>
-                        <div className="text-sm font-black text-slate-900 dark:text-white">{t.type === 'buy' ? 'کڕین' : 'فرۆشتن'}</div>
-                        <div className="text-[10px] text-slate-400">{new Date(t.date).toLocaleDateString('ku-IQ')}</div>
+                        <div className="text-sm font-black text-slate-900 dark:text-white">{tx.type === 'buy' ? t('buy') : t('sell')}</div>
+                        <div className="text-[10px] text-slate-400">{new Date(tx.date).toLocaleDateString('ku-IQ')}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={`font-black ${t.type === 'buy' ? 'text-rose-500' : 'text-emerald-500'}`}>
-                        {t.type === 'buy' ? '-' : '+'}{t.total.toLocaleString()} IQD
+                      <div className={`font-black ${tx.type === 'buy' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                        {tx.type === 'buy' ? '-' : '+'}{tx.total.toLocaleString()} {t('iqd')}
                       </div>
-                      <div className="text-[10px] text-slate-400">{t.amount} × {t.price.toLocaleString()}</div>
+                      <div className="text-[10px] text-slate-400">{tx.amount} × {tx.price.toLocaleString()}</div>
                     </div>
                   </div>
                 </div>
@@ -582,7 +680,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
             ) : (
               <div className="flex items-center gap-2 group">
                 <h1 className="text-2xl font-black text-slate-900 dark:text-white italic tracking-tighter uppercase">
-                  {config.ledgerTitle || 'کۆمپانیا و مارکێت'}
+                  {config.ledgerTitle || t('company_and_market')}
                 </h1>
                 {canEditTitle && (
                   <button 
@@ -594,7 +692,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                 )}
               </div>
             )}
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">Company & Market Ledger</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">{t('accounts')}</p>
           </div>
         </div>
         <button 
@@ -614,9 +712,9 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                 <div className="p-2 bg-rose-500/10 rounded-xl text-rose-500">
                   <TrendingDown size={20} />
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">کۆی خەرجییەکان</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('total_spending')}</span>
               </div>
-              <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{stats.totalSpending.toLocaleString()} IQD</p>
+              <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{stats.totalSpending.toLocaleString()} {t('iqd')}</p>
             </div>
           </div>
         </div>
@@ -626,9 +724,9 @@ const AccountsView: React.FC<AccountsViewProps> = ({
             <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-500">
               <TrendingUp size={20} />
             </div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">کۆی داهات</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('total_income')}</span>
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{stats.totalSell.toLocaleString()} IQD</p>
+          <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{stats.totalSell.toLocaleString()} {t('iqd')}</p>
         </div>
 
         <div className={`p-6 rounded-[2rem] border shadow-xl backdrop-blur-xl ${stats.profit >= 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20'}`}>
@@ -636,36 +734,50 @@ const AccountsView: React.FC<AccountsViewProps> = ({
             <div className={`p-2 rounded-xl ${stats.profit >= 0 ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}`}>
               <DollarSign size={20} />
             </div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">قازانج / زیان</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('profit_loss')}</span>
           </div>
           <p className={`text-2xl font-black tabular-nums ${stats.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-            {stats.profit >= 0 ? '+' : ''}{stats.profit.toLocaleString()} IQD
+            {stats.profit >= 0 ? '+' : ''}{stats.profit.toLocaleString()} {t('iqd')}
           </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-[2rem] border border-white/10 mx-2 print:hidden">
+      <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-[2rem] border border-white/10 mx-2 print:hidden overflow-x-auto no-scrollbar">
         <button 
           onClick={() => setActiveTab('transactions')}
-          className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'transactions' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'transactions' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
         >
           <List size={18} />
-          مێژووی مامەڵەکان
+          {t('transactions')}
         </button>
         <button 
           onClick={() => setActiveTab('inventory')}
-          className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'inventory' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'inventory' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
         >
           <LayoutGrid size={18} />
-          کاڵا ئامادەکراوەکان
+          {t('inventory')}
         </button>
         <button 
           onClick={() => setActiveTab('pos')}
-          className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'pos' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'pos' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
         >
           <ShoppingCart size={18} />
-          فرۆشتن (POS)
+          {t('pos')}
+        </button>
+        <button 
+          onClick={() => setActiveTab('customers')}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'customers' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+        >
+          <Users size={18} />
+          {t('customers')}
+        </button>
+        <button 
+          onClick={() => setActiveTab('reports')}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'reports' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+        >
+          <BarChart3 size={18} />
+          {t('reports')}
         </button>
       </div>
 
@@ -679,19 +791,20 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                 type="text" 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="گەڕان بەدوای کاڵا یان ناوی کڕیار..."
+                placeholder={t('search_product')}
                 className="w-full bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/5 p-4 pl-12 rounded-[2rem] outline-none font-bold text-sm shadow-lg focus:shadow-xl transition-all"
               />
             </div>
             
             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
               {[
-                { id: 'all', label: 'هەمووی', icon: List },
-                { id: 'buy', label: 'کڕین', icon: TrendingUp },
-                { id: 'sell', label: 'فرۆشتن', icon: TrendingDown },
-                { id: 'expense', label: 'خەرجییەکان', icon: DollarSign },
-                { id: 'rent', label: 'کرێ', icon: Home },
-                { id: 'debt', label: 'قەرزەکان', icon: Clock },
+                { id: 'all', label: t('all_categories'), icon: List },
+                { id: 'buy', label: t('buy'), icon: TrendingUp },
+                { id: 'sell', label: t('sell'), icon: TrendingDown },
+                { id: 'expense', label: t('expense'), icon: DollarSign },
+                { id: 'rent', label: t('rent'), icon: Home },
+                { id: 'debt', label: t('debt'), icon: Clock },
+
               ].map(f => (
                 <button
                   key={f.id}
@@ -706,12 +819,19 @@ const AccountsView: React.FC<AccountsViewProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end items-center px-2 print:hidden">
+          <div className="flex justify-between items-center px-2 print:hidden">
+            <button 
+              onClick={exportToCSV}
+              className="flex items-center gap-2 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/5 px-6 py-3 rounded-2xl font-black text-xs shadow-lg text-slate-500 hover:text-primary transition-all"
+            >
+              <Download size={18} />
+              {t('export_csv')}
+            </button>
             <button 
               onClick={() => setShowAddForm(!showAddForm)}
               className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-2xl font-black text-xs shadow-lg hover:scale-105 transition-transform"
             >
-              {showAddForm ? 'داخستن' : <><Plus size={18} /> زیادکردنی مامەڵە</>}
+              {showAddForm ? t('close') : <><Plus size={18} /> {t('add_transaction')}</>}
             </button>
           </div>
 
@@ -721,7 +841,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ناوی کاڵا / دراو</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('item_name')}</label>
                     <div className="relative">
                       <Package className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input 
@@ -729,61 +849,61 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                         value={formData.itemName}
                         onChange={e => setFormData({...formData, itemName: e.target.value})}
                         className="w-full bg-white dark:bg-slate-800 border border-white/20 dark:border-white/5 p-4 pl-12 rounded-2xl outline-none font-bold text-sm shadow-inner"
-                        placeholder="بۆ نموونە: ئایفۆن، دۆلار، زێڕ..."
+                        placeholder="{t('example_iphone_dollar_gold')}"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">جۆری مامەڵە</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('transaction_type')}</label>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl gap-1 overflow-x-auto">
                       <button 
                         type="button"
                         onClick={() => setFormData({...formData, type: 'buy'})}
                         className={`flex-1 min-w-[80px] py-3 rounded-xl font-black text-xs transition-all ${formData.type === 'buy' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-500'}`}
                       >
-                        کڕین
+                        {t('buy')}
                       </button>
                       <button 
                         type="button"
                         onClick={() => setFormData({...formData, type: 'sell'})}
                         className={`flex-1 min-w-[80px] py-3 rounded-xl font-black text-xs transition-all ${formData.type === 'sell' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-500'}`}
                       >
-                        فرۆشتن
+                        {t('sell')}
                       </button>
                       <button 
                         type="button"
                         onClick={() => setFormData({...formData, type: 'expense'})}
                         className={`flex-1 min-w-[80px] py-3 rounded-xl font-black text-xs transition-all ${formData.type === 'expense' ? 'bg-red-500 text-white shadow-md' : 'text-slate-500'}`}
                       >
-                        خەرجی
+                        {t('expense')}
                       </button>
                       <button 
                         type="button"
                         onClick={() => setFormData({...formData, type: 'rent'})}
                         className={`flex-1 min-w-[80px] py-3 rounded-xl font-black text-xs transition-all ${formData.type === 'rent' ? 'bg-orange-500 text-white shadow-md' : 'text-slate-500'}`}
                       >
-                        کرێ
+                        {t('rent')}
                       </button>
                     </div>
                   </div>
 
                   {formData.type === 'expense' || formData.type === 'rent' ? (
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">بڕی پارە (IQD)</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('total')}</label>
                       <input 
                         type="number" 
                         step="any"
                         value={formData.price}
                         onChange={e => setFormData({...formData, price: e.target.value, amount: '1'})}
                         className="w-full bg-white dark:bg-slate-800 border border-white/20 dark:border-white/5 p-4 rounded-2xl outline-none font-bold text-sm shadow-inner"
-                        placeholder="0 IQD"
+                        placeholder={`0 ${t('iqd')}`}
                       />
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">بڕ (Amount)</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('quantity')}</label>
                         <input 
                           type="number" 
                           step="any"
@@ -795,21 +915,21 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">نرخی یەکە (Price)</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('price_per_item')}</label>
                         <input 
                           type="number" 
                           step="any"
                           value={formData.price}
                           onChange={e => setFormData({...formData, price: e.target.value})}
                           className="w-full bg-white dark:bg-slate-800 border border-white/20 dark:border-white/5 p-4 rounded-2xl outline-none font-bold text-sm shadow-inner"
-                          placeholder="0 IQD"
+                          placeholder={`0 ${t('iqd')}`}
                         />
                       </div>
                     </div>
                   )}
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ناوی کڕیار / فرۆشیار (ئارەزوومەندانە)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('customer_name')}</label>
                     <div className="relative">
                       <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input 
@@ -817,7 +937,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                         value={formData.customerName}
                         onChange={e => setFormData({...formData, customerName: e.target.value})}
                         className="w-full bg-white dark:bg-slate-800 border border-white/20 dark:border-white/5 p-4 pl-12 rounded-2xl outline-none font-bold text-sm shadow-inner"
-                        placeholder="ناوی کەسی بەرامبەر..."
+                        placeholder="{t('customer_name_placeholder')}"
                       />
                     </div>
                   </div>
@@ -825,7 +945,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">شێوازی پارەدان</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('status')}</label>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl gap-1">
                       <button 
                         type="button"
@@ -833,7 +953,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                         className={`flex-1 py-3 rounded-xl font-black text-xs transition-all ${formData.status === 'paid' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-500'}`}
                       >
                         <CheckCircle size={14} className="inline mr-1" />
-                        دراوە (Paid)
+                        {t('paid')}
                       </button>
                       <button 
                         type="button"
@@ -841,14 +961,14 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                         className={`flex-1 py-3 rounded-xl font-black text-xs transition-all ${formData.status === 'pending' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-500'}`}
                       >
                         <Clock size={14} className="inline mr-1" />
-                        قەرز (Debt)
+                        {t('debt')}
                       </button>
                     </div>
                   </div>
 
                   {formData.status === 'pending' && (
                     <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">بەرواری دانەوە (Due Date)</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('due_date')}</label>
                       <div className="relative">
                         <CalendarClock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input 
@@ -862,7 +982,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                   )}
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">وێنەی کاڵا</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('image_optional')}</label>
                     <div 
                       onClick={() => fileInputRef.current?.click()}
                       className="w-full h-32 bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-[2rem] flex flex-col items-center justify-center cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-all overflow-hidden relative group"
@@ -880,7 +1000,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                       ) : (
                         <>
                           <Upload className="text-slate-400 mb-2" size={24} />
-                          <span className="text-[10px] font-black text-slate-500 uppercase">Upload Image</span>
+                          <span className="text-[10px] font-black text-slate-500 uppercase">{t('image_optional')}</span>
                         </>
                       )}
                     </div>
@@ -888,26 +1008,26 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">قازانج / زیانی دەستی</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('profit')}</label>
                     <input 
                       type="number" 
                       step="any"
                       value={formData.profit}
                       onChange={e => setFormData({...formData, profit: e.target.value})}
                       className="w-full bg-white dark:bg-slate-800 border border-white/20 dark:border-white/5 p-4 rounded-2xl outline-none font-bold text-sm shadow-inner"
-                      placeholder="ئارەزوومەندانە..."
+                      placeholder={t('optional_placeholder')}
                     />
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">تێبینی (ئارەزوومەندانە)</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('note_optional')}</label>
                 <textarea 
                   value={formData.note}
                   onChange={e => setFormData({...formData, note: e.target.value})}
                   className="w-full bg-white dark:bg-slate-800 border border-white/20 dark:border-white/5 p-4 rounded-2xl outline-none font-bold text-sm shadow-inner h-24 resize-none"
-                  placeholder="زانیاری زیاتر..."
+                  placeholder="{t('more_info_placeholder')}"
                 />
               </div>
 
@@ -915,7 +1035,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                 type="submit"
                 className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
               >
-                تۆمارکردن لە سیستەم
+                {t('register')}
               </button>
             </form>
           )}
@@ -923,7 +1043,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
           {/* Transactions List */}
           <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden mx-2">
             <div className="px-8 py-6 border-b border-white/10 flex items-center justify-between">
-              <h3 className="text-sm font-black text-primary uppercase tracking-widest italic">لیستی کاڵا و مامەڵەکان</h3>
+              <h3 className="text-sm font-black text-primary uppercase tracking-widest italic">{t('transaction_list')}</h3>
               <span className="text-[10px] font-bold text-slate-500 opacity-50">{userTransactions.length} Items</span>
             </div>
 
@@ -931,86 +1051,90 @@ const AccountsView: React.FC<AccountsViewProps> = ({
               {userTransactions.length === 0 ? (
                 <div className="py-20 text-center opacity-30">
                   <FileText size={48} className="mx-auto mb-4" />
-                  <p className="font-black text-xs uppercase tracking-widest">هیچ داتایەک تۆمار نەکراوە</p>
+                  <p className="font-black text-xs uppercase tracking-widest">{t('no_transactions')}</p>
                 </div>
               ) : (
-                userTransactions.map(t => (
-                  <div key={t.id} className="p-6 hover:bg-white/10 dark:hover:bg-white/[0.05] transition-all group">
+                userTransactions.map(tx => (
+                  <div key={tx.id} className="p-6 hover:bg-white/10 dark:hover:bg-white/[0.05] transition-all group">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 min-w-0">
                         <div className="relative shrink-0">
-                          {t.image ? (
-                            <img src={t.image} alt={t.itemName} className="w-16 h-16 rounded-2xl object-cover shadow-lg border border-white/20" />
+                          {tx.image ? (
+                            <img src={tx.image} alt={tx.itemName} className="w-16 h-16 rounded-2xl object-cover shadow-lg border border-white/20" />
                           ) : (
-                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${t.type === 'buy' ? 'bg-emerald-500/20 text-emerald-500' : (t.type === 'expense' ? 'bg-red-500/20 text-red-500' : (t.type === 'rent' ? 'bg-orange-500/20 text-orange-500' : 'bg-rose-500/20 text-rose-500'))}`}>
-                              {t.type === 'expense' ? <DollarSign size={24} /> : (t.type === 'rent' ? <Home size={24} /> : <Package size={24} />)}
+                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${tx.type === 'buy' ? 'bg-emerald-500/20 text-emerald-500' : (tx.type === 'expense' ? 'bg-red-500/20 text-red-500' : (tx.type === 'rent' ? 'bg-orange-500/20 text-orange-500' : 'bg-rose-500/20 text-rose-500'))}`}>
+                              {tx.type === 'expense' ? <DollarSign size={24} /> : (tx.type === 'rent' ? <Home size={24} /> : <Package size={24} />)}
                             </div>
                           )}
-                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] text-white ${t.type === 'buy' ? 'bg-emerald-500' : (t.type === 'expense' ? 'bg-red-500' : (t.type === 'rent' ? 'bg-orange-500' : 'bg-rose-500'))}`}>
-                            {t.type === 'buy' ? <TrendingUp size={10} /> : (t.type === 'expense' ? <DollarSign size={10} /> : (t.type === 'rent' ? <Home size={10} /> : <TrendingDown size={10} />))}
+                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] text-white ${tx.type === 'buy' ? 'bg-emerald-500' : (tx.type === 'expense' ? 'bg-red-500' : (tx.type === 'rent' ? 'bg-orange-500' : 'bg-rose-500'))}`}>
+                            {tx.type === 'buy' ? <TrendingUp size={10} /> : (tx.type === 'expense' ? <DollarSign size={10} /> : (tx.type === 'rent' ? <Home size={10} /> : <TrendingDown size={10} />))}
                           </div>
                         </div>
                         <div className="min-w-0">
-                          <h4 className="text-lg font-black text-slate-900 dark:text-white truncate">{t.itemName}</h4>
+                          <h4 className="text-lg font-black text-slate-900 dark:text-white truncate">{tx.itemName}</h4>
                           <div className="flex items-center gap-3 mt-1">
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${t.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500' : (t.type === 'expense' ? 'bg-red-500/10 text-red-500' : (t.type === 'rent' ? 'bg-orange-500/10 text-orange-500' : 'bg-rose-500/10 text-rose-500'))}`}>
-                              {t.type === 'buy' ? 'کڕین' : (t.type === 'expense' ? 'خەرجی' : (t.type === 'rent' ? 'کرێ' : 'فرۆشتن'))}
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${tx.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500' : (tx.type === 'expense' ? 'bg-red-500/10 text-red-500' : (tx.type === 'rent' ? 'bg-orange-500/10 text-orange-500' : 'bg-rose-500/10 text-rose-500'))}`}>
+                              {tx.type === 'buy' ? t('buy') : (tx.type === 'expense' ? t('expense') : (tx.type === 'rent' ? t('rent') : t('sell')))}
                             </span>
                             <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
                               <Calendar size={12} />
-                              {new Date(t.date).toLocaleDateString('ku-IQ')}
+                              {new Date(tx.date).toLocaleDateString('ku-IQ')}
                             </div>
-                            {t.status === 'pending' && (
+                            {tx.status === 'pending' && (
                               <span className="text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider bg-amber-500/10 text-amber-500 flex items-center gap-1">
                                 <Clock size={10} />
-                                قەرز
+                                {t('debt')}
                               </span>
                             )}
                           </div>
-                          {t.customerName && (
+                          {tx.customerName && (
                             <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 mt-1">
                               <UserIcon size={12} />
-                              {t.customerName}
+                              {tx.customerName}
                             </div>
                           )}
                         </div>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <p className={`text-xl font-black tabular-nums ${t.type === 'buy' ? 'text-rose-500' : (t.type === 'expense' || t.type === 'rent' ? 'text-red-500' : 'text-emerald-500')}`}>
-                          {t.type === 'buy' || t.type === 'expense' || t.type === 'rent' ? '-' : '+'}{t.total.toLocaleString()} IQD
+                        <p className={`text-xl font-black tabular-nums ${tx.type === 'buy' ? 'text-rose-500' : (tx.type === 'expense' || tx.type === 'rent' ? 'text-red-500' : 'text-emerald-500')}`}>
+                          {tx.type === 'buy' || tx.type === 'expense' || tx.type === 'rent' ? '-' : '+'}{tx.total.toLocaleString()} IQD
                         </p>
-                        {t.profit !== undefined && t.type !== 'expense' && t.type !== 'rent' && (
-                          <p className={`text-[10px] font-black mt-1 ${t.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            قازانج: {t.profit >= 0 ? '+' : ''}{t.profit.toLocaleString()} IQD
+                        {tx.profit !== undefined && tx.type !== 'expense' && tx.type !== 'rent' && (
+                          <p className={`text-[10px] font-black mt-1 ${tx.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {t('profit')}: {tx.profit >= 0 ? '+' : ''}{tx.profit.toLocaleString()} IQD
                           </p>
                         )}
-                        {t.type !== 'expense' && t.type !== 'rent' && (
+                        {tx.type !== 'expense' && tx.type !== 'rent' && (
                           <p className="text-[10px] font-bold text-slate-400 mt-1">
-                            {t.amount.toLocaleString()} × {t.price.toLocaleString()} IQD
+                            {tx.amount.toLocaleString()} × {tx.price.toLocaleString()} IQD
                           </p>
                         )}
-                        {t.status === 'pending' && (
+                        {tx.status === 'pending' && (
                           <button 
-                            onClick={() => handleMarkAsPaid(t)}
+                            onClick={() => handleMarkAsPaid(tx)}
                             className="mt-2 text-[10px] font-black text-emerald-500 border border-emerald-500/20 px-2 py-1 rounded-lg hover:bg-emerald-500 hover:text-white transition-all print:hidden"
                           >
-                            وەرگرتنەوە
+                            {t('mark_as_paid')}
                           </button>
                         )}
                       </div>
 
                       <button 
-                        onClick={() => onDeleteTransaction(t.id)}
+                        onClick={() => {
+                          if (window.confirm(t('confirm_delete_transaction'))) {
+                            onDeleteTransaction(tx.id);
+                          }
+                        }}
                         className="p-2 text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
                       >
                         <Trash2 size={18} />
                       </button>
                     </div>
-                    {t.note && (
+                    {tx.note && (
                       <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-[11px] font-bold text-slate-500 italic flex items-start gap-2">
                         <FileText size={14} className="shrink-0 mt-0.5" />
-                        {t.note}
+                        {tx.note}
                       </div>
                     )}
                   </div>
@@ -1023,6 +1147,40 @@ const AccountsView: React.FC<AccountsViewProps> = ({
       
       {activeTab === 'inventory' && (
         <div className="space-y-6">
+          {/* Inventory Alerts */}
+          {(inventoryAlerts.lowStock.length > 0 || inventoryAlerts.expired.length > 0) && (
+            <div className="px-2 space-y-2">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <AlertTriangle size={14} className="text-amber-500" />
+                {t('stock_alerts')}
+              </h4>
+              <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                {inventoryAlerts.lowStock.map(p => (
+                  <div key={p.id} className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl flex items-center gap-3 shrink-0">
+                    <div className="w-8 h-8 bg-amber-500 text-white rounded-lg flex items-center justify-center font-black text-[10px]">
+                      {p.quantity}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-amber-700 dark:text-amber-400">{p.name}</p>
+                      <p className="text-[8px] font-bold text-amber-600/60 uppercase">{t('low_stock')}</p>
+                    </div>
+                  </div>
+                ))}
+                {inventoryAlerts.expired.map(p => (
+                  <div key={p.id} className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl flex items-center gap-3 shrink-0">
+                    <div className="w-8 h-8 bg-rose-500 text-white rounded-lg flex items-center justify-center">
+                      <Clock size={14} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-rose-700 dark:text-rose-400">{p.name}</p>
+                      <p className="text-[8px] font-bold text-rose-600/60 uppercase">{t('expired')}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Inventory Actions */}
           <div className="flex justify-end items-center px-2 gap-2">
             <button 
@@ -1040,7 +1198,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
               }}
               className="flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-lg hover:scale-105 transition-transform"
             >
-              {showProductForm ? 'داخستن' : <><Plus size={18} /> ئامادەکردنی کاڵای نوێ</>}
+              {showProductForm ? t('close') : <><Plus size={18} /> {t('add_new_product')}</>}
             </button>
           </div>
 
@@ -1048,7 +1206,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
               <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-300">
                 <div className="bg-primary p-6 text-white flex items-center justify-between shrink-0">
-                  <h2 className="text-xl font-black">بەڕێوەبردنی بەشەکان</h2>
+                  <h2 className="text-xl font-black">{t('manage_categories')}</h2>
                   <button 
                     onClick={() => setShowCategoryManager(false)}
                     className="bg-white/20 hover:bg-white/30 p-2 rounded-full transition-colors"
@@ -1062,30 +1220,49 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                       onClick={handleAddCategory}
                       className="bg-primary text-white p-3 rounded-xl hover:bg-primary/90 transition-colors shadow-lg"
                     >
-                      <Plus size={20} />
+                      {editingCategoryId ? <Check size={20} /> : <Plus size={20} />}
                     </button>
                     <input 
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="ناوی بەشی نوێ..."
+                      placeholder={editingCategoryId ? t('new_category_name') : t('new_category_name')}
                       className="flex-1 bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20"
                     />
+                    {editingCategoryId && (
+                      <button 
+                        onClick={() => {
+                          setEditingCategoryId(null);
+                          setNewCategoryName('');
+                        }}
+                        className="bg-slate-100 dark:bg-slate-800 text-slate-500 p-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        <X size={20} />
+                      </button>
+                    )}
                   </div>
                   <div className="space-y-2">
                     {categories.length === 0 ? (
                       <div className="text-center py-8 opacity-50">
                         <List size={32} className="mx-auto mb-2 text-slate-400" />
-                        <p className="text-xs font-black text-slate-400">هیچ بەشێک زیاد نەکراوە</p>
+                        <p className="text-xs font-black text-slate-400">{t('no_categories')}</p>
                       </div>
                     ) : (
                       categories.map(cat => (
-                        <div key={cat.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
-                          <button 
-                            onClick={() => handleDeleteCategory(cat.id)}
-                            className="text-rose-500 hover:bg-rose-500/10 p-2 rounded-xl transition-colors"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                        <div key={cat.id} className={`flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border transition-all ${editingCategoryId === cat.id ? 'border-primary ring-1 ring-primary/20' : 'border-slate-100 dark:border-slate-700'}`}>
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => handleDeleteCategory(cat.id)}
+                              className="text-rose-500 hover:bg-rose-500/10 p-2 rounded-xl transition-colors"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                            <button 
+                              onClick={() => handleEditCategory(cat)}
+                              className="text-amber-500 hover:bg-amber-500/10 p-2 rounded-xl transition-colors"
+                            >
+                              <Edit3 size={18} />
+                            </button>
+                          </div>
                           <span className="font-bold text-slate-700 dark:text-slate-300">{cat.name}</span>
                         </div>
                       ))
@@ -1101,7 +1278,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
               <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
                 {/* Header */}
                 <div className="bg-primary p-6 text-white flex items-center justify-between shrink-0">
-                  <h2 className="text-xl font-black">{editingProductId ? 'دەستکاری کاڵا' : 'زیادکردنی کاڵا'}</h2>
+                  <h2 className="text-xl font-black">{editingProductId ? t('edit_product') : t('add_product')}</h2>
                   <button 
                     onClick={() => setShowProductForm(false)}
                     className="bg-white/20 hover:bg-white/30 p-2 rounded-full transition-colors"
@@ -1116,7 +1293,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                     onClick={() => setProductFormTab('basic')}
                     className={`flex-1 py-4 text-sm font-black transition-all relative ${productFormTab === 'basic' ? 'text-primary' : 'text-slate-400'}`}
                   >
-                    سەرەتایی
+                    {t('basic')}
                     {productFormTab === 'basic' && (
                       <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full mx-8" />
                     )}
@@ -1125,7 +1302,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                     onClick={() => setProductFormTab('advanced')}
                     className={`flex-1 py-4 text-sm font-black transition-all relative ${productFormTab === 'advanced' ? 'text-primary' : 'text-slate-400'}`}
                   >
-                    پێشکەوتوو
+                    {t('advanced')}
                     {productFormTab === 'advanced' && (
                       <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full mx-8" />
                     )}
@@ -1163,7 +1340,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                   {productFormTab === 'basic' ? (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">بارکۆدی کاڵا *</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('product_barcode')} *</label>
                         <div className="flex gap-2">
                           <button 
                             type="button"
@@ -1183,25 +1360,25 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                             type="text" 
                             value={productData.barcode}
                             onChange={(e) => setProductData({...productData, barcode: e.target.value})}
-                            placeholder="بارکۆدی کاڵا"
+                            placeholder={t('product_barcode')}
                             className="flex-1 bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">ناوی کاڵا *</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('product_name')} *</label>
                         <input 
                           type="text" 
                           value={productData.name}
                           onChange={(e) => setProductData({...productData, name: e.target.value})}
-                          placeholder="ناوی کاڵا"
+                          placeholder={t('product_name')}
                           className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">هاوپۆل *</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('category')} *</label>
                         <div className="flex gap-2">
                           <button 
                             type="button"
@@ -1224,7 +1401,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                             className="flex-1 bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20 appearance-none"
                             dir="rtl"
                           >
-                            <option value="">هاوپۆل هەڵبژێرە</option>
+                            <option value="">{t('category')}</option>
                             {categories.map(cat => (
                               <option key={cat.id} value={cat.name}>{cat.name}</option>
                             ))}
@@ -1233,34 +1410,34 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">تێچوو *</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('cost_price')} *</label>
                         <input 
                           type="number" 
                           value={productData.costPrice}
                           onChange={(e) => setProductData({...productData, costPrice: e.target.value})}
-                          placeholder="تێچوو"
+                          placeholder={t('cost_price')}
                           className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">نرخی فرۆشتن *</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('selling_price')} *</label>
                         <input 
                           type="number" 
                           value={productData.defaultPrice}
                           onChange={(e) => setProductData({...productData, defaultPrice: e.target.value})}
-                          placeholder="نرخی فرۆشتن"
+                          placeholder={t('selling_price')}
                           className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">دانەی کاڵا *</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('product_quantity')} *</label>
                         <input 
                           type="number" 
                           value={productData.quantity}
                           onChange={(e) => setProductData({...productData, quantity: e.target.value})}
-                          placeholder="دانەی کاڵا"
+                          placeholder={t('product_quantity')}
                           className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20"
                         />
                       </div>
@@ -1268,7 +1445,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                   ) : (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">بەرواری بەسەرچوون</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('expiry_date')}</label>
                         <div className="relative">
                           <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                           <input 
@@ -1281,33 +1458,33 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">نرخی جوملە</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('wholesale_price')}</label>
                         <input 
                           type="number" 
                           value={productData.wholesalePrice}
                           onChange={(e) => setProductData({...productData, wholesalePrice: e.target.value})}
-                          placeholder="نرخی جوملە"
+                          placeholder={t('wholesale_price')}
                           className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">لینکی کاڵاکە لە سۆشیال میدیا</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('product_link')}</label>
                         <input 
                           type="text" 
                           value={productData.socialLink}
                           onChange={(e) => setProductData({...productData, socialLink: e.target.value})}
-                          placeholder="لینکی کاڵاکە لە سۆشیال میدیا"
+                          placeholder={t('product_link')}
                           className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 block text-right">تێبینی کاڵا</label>
+                        <label className="text-xs font-bold text-slate-500 block text-right">{t('product_note')}</label>
                         <textarea 
                           value={productData.note}
                           onChange={(e) => setProductData({...productData, note: e.target.value})}
-                          placeholder="تێبینی کاڵا"
+                          placeholder={t('product_note')}
                           rows={3}
                           className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-right font-bold outline-none focus:ring-2 ring-primary/20 resize-none"
                         />
@@ -1322,7 +1499,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                     onClick={() => handleAddProduct()}
                     className="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
                   >
-                    {editingProductId ? 'نوێکردنەوەی کاڵا' : 'زیادکردنی کاڵا'}
+                    {editingProductId ? t('update_product') : t('add_product')}
                   </button>
                 </div>
               </div>
@@ -1334,7 +1511,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
             {userProducts.length === 0 ? (
               <div className="col-span-full py-20 text-center opacity-30">
                 <Tag size={48} className="mx-auto mb-4" />
-                <p className="font-black text-xs uppercase tracking-widest">هیچ کاڵایەک ئامادە نەکراوە</p>
+                <p className="font-black text-xs uppercase tracking-widest">{t('no_products')}</p>
               </div>
             ) : (
               userProducts.map(product => (
@@ -1354,7 +1531,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (window.confirm('دڵنیای لە سڕینەوەی ئەم کاڵایە؟')) {
+                        if (window.confirm(t('confirm_delete_product'))) {
                           handleDeleteProduct(product.id);
                         }
                       }}
@@ -1409,7 +1586,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                   type="text" 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="گەڕان بۆ کاڵا..."
+                  placeholder={t('search_product')}
                   className="w-full bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/5 p-4 pl-12 rounded-[2rem] outline-none font-bold text-sm shadow-lg focus:shadow-xl transition-all"
                 />
               </div>
@@ -1488,7 +1665,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
               <div className="flex items-center justify-between">
                 <h3 className="font-black text-lg text-slate-900 dark:text-white flex items-center gap-2">
                   <ShoppingCart size={20} className="text-primary" />
-                  سەبەتەی کڕین
+                  {t('cart')}
                 </h3>
                 <span className="text-xs font-bold text-white bg-primary px-3 py-1 rounded-full shadow-lg shadow-primary/20">
                   {cart.reduce((acc, item) => acc + item.quantity, 0)} Items
@@ -1502,7 +1679,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                   <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center">
                     <ShoppingCart size={32} />
                   </div>
-                  <p className="text-xs font-black uppercase tracking-widest">سەبەتە بەتاڵە</p>
+                  <p className="text-xs font-black uppercase tracking-widest">{t('empty_cart')}</p>
                 </div>
               ) : (
                 cart.map(item => (
@@ -1553,7 +1730,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                     type="text" 
                     value={cartCustomer} 
                     onChange={(e) => setCartCustomer(e.target.value)}
-                    placeholder="ناوی کڕیار..."
+                    placeholder={t('customer_name_placeholder')}
                     className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-4 py-3 text-xs font-bold outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                   />
                 </div>
@@ -1589,7 +1766,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <span className="text-sm font-bold text-slate-500">کۆی گشتی</span>
+                <span className="text-sm font-bold text-slate-500">{t('total')}</span>
                 <span className="text-xl font-black text-slate-900 dark:text-white">{cart.reduce((acc, item) => acc + (item.price * item.quantity), 0).toLocaleString()} IQD</span>
               </div>
 
@@ -1598,10 +1775,111 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                 disabled={cart.length === 0}
                 className="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
               >
-                <span>تەواوکردنی فرۆشتن</span>
+                <span>{t('checkout')}</span>
                 <ChevronRight size={18} className="rtl:rotate-180" />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {activeTab === 'customers' && (
+        <div className="space-y-6 px-2">
+          <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden">
+            <div className="px-8 py-6 border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-sm font-black text-primary uppercase tracking-widest italic">{t('customer_list')}</h3>
+              <div className="flex items-center gap-2 bg-rose-500/10 px-3 py-1 rounded-full">
+                <span className="text-[10px] font-black text-rose-500 uppercase">{t('total_debt')}: {customerStats.reduce((acc, c) => acc + c.debt, 0).toLocaleString()} IQD</span>
+              </div>
+            </div>
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              {customerStats.length === 0 ? (
+                <div className="py-20 text-center opacity-30">
+                  <Users size={48} className="mx-auto mb-4" />
+                  <p className="font-black text-xs uppercase tracking-widest">{t('no_customers_found')}</p>
+                </div>
+              ) : (
+                customerStats.map(customer => (
+                  <div key={customer.name} className="p-6 hover:bg-white/10 dark:hover:bg-white/[0.05] transition-all group">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
+                          <UserIcon size={24} />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-slate-900 dark:text-white">{customer.name}</h4>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                            {customer.totalTransactions} {t('transactions')} • {t('last_update')}: {new Date(customer.lastTransaction).toLocaleDateString('ku-IQ')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-lg font-black ${customer.debt > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                          {customer.debt > 0 ? `${customer.debt.toLocaleString()} IQD` : t('paid')}
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase">{t('total_amount')}: {customer.totalAmount.toLocaleString()} IQD</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'reports' && (
+        <div className="space-y-6 px-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { id: 'daily', label: t('daily_report'), data: reportStats.daily },
+              { id: 'weekly', label: t('weekly_report'), data: reportStats.weekly },
+              { id: 'monthly', label: t('monthly_report'), data: reportStats.monthly }
+            ].map(report => (
+              <div key={report.id} className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-primary uppercase tracking-widest italic">{report.label}</h4>
+                  <BarChart3 size={18} className="text-slate-300" />
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-slate-400 uppercase">{t('sell')}</span>
+                    <span className="text-sm font-black text-emerald-500">+{report.data.sell.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-slate-400 uppercase">{t('buy')}</span>
+                    <span className="text-sm font-black text-rose-500">-{report.data.buy.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-slate-400 uppercase">{t('expense')}</span>
+                    <span className="text-sm font-black text-rose-500">-{report.data.expense.toLocaleString()}</span>
+                  </div>
+                  <div className="pt-4 border-t border-white/10 flex justify-between items-center">
+                    <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase">{t('profit')}</span>
+                    <span className={`text-lg font-black ${report.data.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {report.data.profit >= 0 ? '+' : ''}{report.data.profit.toLocaleString()} IQD
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl p-8 text-center space-y-4">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
+              <Download size={32} />
+            </div>
+            <h3 className="text-xl font-black text-slate-900 dark:text-white italic uppercase tracking-tight">{t('export_csv')}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold max-w-xs mx-auto">
+              دەتوانیت هەموو مامەڵەکانت بە شێوەی فایلی CSV دابەزێنیت بۆ ئەوەی لە Excel یان هەر بەرنامەیەکی تر بەکاری بهێنیت.
+            </p>
+            <button 
+              onClick={exportToCSV}
+              className="bg-primary text-white px-10 py-4 rounded-2xl font-black shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 mx-auto"
+            >
+              <Download size={20} />
+              {t('export_csv')}
+            </button>
           </div>
         </div>
       )}

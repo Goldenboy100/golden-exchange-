@@ -35,7 +35,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Available tabs based on role
   const availableTabs = [
     { id: 'users', label: 'بەکارهێنەران', icon: UserCog, roles: ['developer', 'staff', 'admin'] },
-  ].filter(t => t.roles.includes(currentUser.role));
+  ].filter(tabItem => tabItem.roles.includes(currentUser.role));
 
   const [tab, setTab] = useState<'users'>('users');
 

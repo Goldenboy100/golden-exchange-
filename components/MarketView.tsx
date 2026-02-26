@@ -60,12 +60,12 @@ const MarketView: React.FC<MarketViewProps> = ({ rates, headlines, t, favorites,
 
           <div className="col-span-3 text-center flex flex-col items-center">
             <span className="text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tighter drop-shadow-md group-hover:scale-105 transition-transform">{rate.buy.toLocaleString()}</span>
-            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1 opacity-50">Buy / کڕین</span>
+            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1 opacity-50">{t('buy')}</span>
           </div>
 
           <div className="col-span-3 text-center flex flex-col items-center">
             <span className={`text-2xl font-black ${rate.code.includes('21K') ? 'text-amber-500' : 'text-primary'} tabular-nums tracking-tighter drop-shadow-md group-hover:scale-105 transition-transform`}>{rate.sell.toLocaleString()}</span>
-            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1 opacity-50">Sell / فرۆشتن</span>
+            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1 opacity-50">{t('sell')}</span>
           </div>
         </div>
       ))}
@@ -112,7 +112,7 @@ const MarketView: React.FC<MarketViewProps> = ({ rates, headlines, t, favorites,
         <div className="relative md:w-64">
           <input 
             type="text" 
-            placeholder="گەڕان..."
+            placeholder={t('search')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/5 p-3 pr-10 rounded-2xl outline-none font-bold text-xs shadow-xl dark:text-white placeholder:text-slate-400"
@@ -124,9 +124,9 @@ const MarketView: React.FC<MarketViewProps> = ({ rates, headlines, t, favorites,
       <div className="space-y-10 relative z-10">
         <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden mx-2">
           <div className="grid grid-cols-12 bg-white/20 dark:bg-white/5 p-5 border-b border-white/10 dark:border-white/5 text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-            <div className="col-span-6">دراو</div>
-            <div className="col-span-3 text-center">کڕین</div>
-            <div className="col-span-3 text-center">فرۆشتن</div>
+            <div className="col-span-6">{t('currency')}</div>
+            <div className="col-span-3 text-center">{t('buy')}</div>
+            <div className="col-span-3 text-center">{t('sell')}</div>
           </div>
           {renderRateList(filteredRates)}
         </div>
@@ -139,10 +139,10 @@ const MarketView: React.FC<MarketViewProps> = ({ rates, headlines, t, favorites,
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 px-2">
          <div className="bg-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 shadow-sm">
             <Clock size={20} className="text-primary" />
-            <p className="text-[10px] font-black dark:text-white italic">{new Date().toLocaleTimeString('ku-IQ')}</p>
+            <p className="text-[10px] font-black dark:text-white italic">{t('last_update')}: {new Date().toLocaleTimeString('ku-IQ')}</p>
          </div>
          <div className="bg-slate-900 p-3 rounded-xl flex items-center justify-center text-center shadow-sm">
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">ئەم نرخانە تەنها بۆ زانیارییە.</p>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">{t('disclaimer')}</p>
          </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 
 const DATA_DIR = path.join(__dirname, "data");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
+const CONFIG_FILE = path.join(DATA_DIR, "config.json");
 
 async function ensureDataDir() {
   try {
@@ -17,9 +18,14 @@ async function ensureDataDir() {
     let users = [];
     try {
       const data = await fs.readFile(USERS_FILE, "utf-8");
-      users = JSON.parse(data);
+      if (data && data.trim()) {
+        users = JSON.parse(data);
+      } else {
+        users = [];
+      }
       if (!Array.isArray(users)) users = [];
-    } catch {
+    } catch (e) {
+      console.log("Users file not found or invalid, starting fresh");
       users = [];
     }
 
@@ -36,6 +42,13 @@ async function ensureDataDir() {
         createdAt: new Date().toISOString()
       });
       await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
+    }
+
+    // Ensure config file exists
+    try {
+      await fs.access(CONFIG_FILE);
+    } catch {
+      await fs.writeFile(CONFIG_FILE, JSON.stringify({}, null, 2));
     }
   } catch (err) {
     console.error("Error initializing data directory:", err);
@@ -60,9 +73,13 @@ async function startServer() {
   app.get("/api/users", async (req, res) => {
     try {
       const data = await fs.readFile(USERS_FILE, "utf-8");
-      const users = JSON.parse(data);
+      let users = [];
+      if (data && data.trim()) {
+        users = JSON.parse(data);
+      }
       res.json(Array.isArray(users) ? users : []);
     } catch (err) {
+      console.error("Error reading users:", err);
       res.json([]);
     }
   });
@@ -73,9 +90,13 @@ async function startServer() {
       let users = [];
       try {
         const data = await fs.readFile(USERS_FILE, "utf-8");
-        users = JSON.parse(data);
+        if (data && data.trim()) {
+          users = JSON.parse(data);
+        }
         if (!Array.isArray(users)) users = [];
-      } catch (e) {}
+      } catch (e) {
+        users = [];
+      }
       
       // Check if user exists
       if (users.some((u: any) => u.email && u.email.toLowerCase() === newUser.email.toLowerCase())) {
@@ -111,9 +132,13 @@ async function startServer() {
       let users = [];
       try {
         const data = await fs.readFile(USERS_FILE, "utf-8");
-        users = JSON.parse(data);
+        if (data && data.trim()) {
+          users = JSON.parse(data);
+        } else {
+          users = [];
+        }
       } catch (err) {
-        // If file doesn't exist, we just have an empty users list
+        users = [];
       }
       
       const user = users.find((u: any) => 
@@ -141,6 +166,26 @@ async function startServer() {
     }
   });
 
+  app.get("/api/config", async (req, res) => {
+    try {
+      const data = await fs.readFile(CONFIG_FILE, "utf-8");
+      const config = data && data.trim() ? JSON.parse(data) : {};
+      res.json(config);
+    } catch (err) {
+      res.json({});
+    }
+  });
+
+  app.put("/api/config", async (req, res) => {
+    try {
+      const config = req.body;
+      await fs.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2));
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to update config" });
+    }
+  });
+
   // Vite middleware for development
   const vite = await createViteServer({
     server: { middlewareMode: true },
@@ -150,6 +195,14 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  });
+
+  process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
   });
 }
 

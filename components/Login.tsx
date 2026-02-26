@@ -15,6 +15,7 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin, onRegister, t, config }) => {
+  console.log('Login component received t prop:', t); // Debugging line
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -120,7 +121,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRegister, t, config }) => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-primary rounded-[2rem] mb-6 shadow-2xl animate-in zoom-in duration-500 font-black italic tracking-tighter text-3xl">
             GE
           </div>
-          <h1 className="text-4xl font-black text-slate-900 dark:text-amber-400 tracking-tight italic mb-2">{config.translations?.[config.language]?.login_title || config.appName}</h1>
+          <h1 className="text-4xl font-black text-slate-900 dark:text-amber-400 tracking-tight italic mb-2">{t('login_title') || config.appName}</h1>
           <p className="text-slate-500 dark:text-amber-400/60 font-bold uppercase tracking-[0.3em] text-[10px]">
             {isRegistering ? t('login_join_network') : t('login_secure_terminal')}
           </p>
