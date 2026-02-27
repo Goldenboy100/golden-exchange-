@@ -1,7 +1,8 @@
 
 import React, { useState, useRef } from 'react';
-import { Settings, ChevronLeft, Moon, Languages, ShieldCheck, LogOut, Check, User as UserIcon, Crown, Shield, Gem, Pen, Cpu, DollarSign } from 'lucide-react';
+import { Settings, ChevronLeft, Moon, Languages, ShieldCheck, LogOut, Check, User as UserIcon, Crown, Shield, Gem, Pen, Cpu, DollarSign, Database, AlertCircle } from 'lucide-react';
 import { User, ViewMode, ThemeMode, LanguageCode, AppConfig } from '../types.ts';
+import { isSupabaseConfigured } from '../src/lib/supabase';
 
 interface SettingsViewProps {
   currentUser: User | null;
@@ -116,6 +117,38 @@ const SettingsView: React.FC<SettingsViewProps> = ({
       )}
 
       {/* This space is intentionally left blank after removing the developer panel button */}
+
+      <div className="space-y-4 relative z-10">
+        <h3 className="text-[9px] font-black text-slate-400 mx-4 uppercase tracking-[0.4em]">{t('database_status')}</h3>
+        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-5">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isSupabaseConfigured() ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                <Database size={20} />
+              </div>
+              <div className="text-right">
+                <p className="font-black text-lg text-slate-800 dark:text-slate-200 uppercase">Supabase Cloud</p>
+                <p className={`text-[10px] font-bold mt-0.5 ${isSupabaseConfigured() ? 'text-emerald-500' : 'text-rose-500'}`}>
+                  {isSupabaseConfigured() ? 'Connected / پەیوەست کراوە' : 'Not Connected / پەیوەست نییە'}
+                </p>
+              </div>
+            </div>
+            {!isSupabaseConfigured() && (
+              <div className="p-2 bg-rose-500 text-white rounded-full animate-pulse">
+                <AlertCircle size={16} />
+              </div>
+            )}
+          </div>
+          
+          {!isSupabaseConfigured() && (
+            <div className="mt-4 p-4 bg-rose-500/5 border border-rose-500/10 rounded-2xl">
+              <p className="text-[10px] font-bold text-rose-600 dark:text-rose-400 leading-relaxed">
+                ⚠️ ئاگاداری: بنکەی زانیاری (Database) پەیوەست نەکراوە. بۆ ئەوەی لە Vercel کار بکات، پێویستە VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY لە ڕێکخستنەکانی Vercel زیاد بکەیت.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="space-y-4 relative z-10">
         <h3 className="text-[9px] font-black text-slate-400 mx-4 uppercase tracking-[0.4em]">{t('preferences')}</h3>
