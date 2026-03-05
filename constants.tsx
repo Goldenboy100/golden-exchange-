@@ -224,7 +224,21 @@ export const INITIAL_RATES: CurrencyRate[] = [
   { id: 'g3', name: 'لیرەی تورکی بۆ دینار', code: 'TRY/IQD', symbol: 'IQD', buy: 4300, sell: 4450, change24h: 0.1, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/tr.png', category: 'global' },
   { id: 'g4', name: 'درهەمی ئیماراتی بۆ دینار', code: 'AED/IQD', symbol: 'IQD', buy: 41000, sell: 41200, change24h: 0.1, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/ae.png', category: 'global' },
   { id: 'g5', name: 'ڕیاڵی سعوودی بۆ دینار', code: 'SAR/IQD', symbol: 'IQD', buy: 40200, sell: 40350, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/sa.png', category: 'global' },
-  { id: 'g6', name: 'دیناری کوەیتی بۆ دینار', code: 'KWD/IQD', symbol: 'IQD', buy: 490000, sell: 492000, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/kw.png', category: 'global' }
+  { id: 'g6', name: 'دیناری کوەیتی بۆ دینار', code: 'KWD/IQD', symbol: 'IQD', buy: 490000, sell: 492000, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/kw.png', category: 'global' },
+  { id: 'g7', name: 'دۆلاری کەنەدی بۆ دینار', code: 'CAD/IQD', symbol: 'IQD', buy: 110500, sell: 111500, change24h: 0.1, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/ca.png', category: 'global' },
+  { id: 'g8', name: 'دۆلاری ئوسترالی بۆ دینار', code: 'AUD/IQD', symbol: 'IQD', buy: 98500, sell: 99500, change24h: 0.2, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/au.png', category: 'global' },
+  { id: 'g9', name: 'فرەنکی سویسری بۆ دینار', code: 'CHF/IQD', symbol: 'IQD', buy: 170000, sell: 171500, change24h: 0.1, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/ch.png', category: 'global' },
+  { id: 'g10', name: 'یەنی ژاپۆنی بۆ دینار', code: 'JPY/IQD', symbol: 'IQD', buy: 1000, sell: 1050, change24h: -0.1, lastUpdated: new Date().toISOString(), change: 'down', flag: 'https://flagcdn.com/w80/jp.png', category: 'global' },
+  { id: 'g11', name: 'کرۆنی سویدی بۆ دینار', code: 'SEK/IQD', symbol: 'IQD', buy: 14000, sell: 14200, change24h: 0.05, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/se.png', category: 'global' },
+  { id: 'g12', name: 'کرۆنی نەرویجی بۆ دینار', code: 'NOK/IQD', symbol: 'IQD', buy: 13800, sell: 14000, change24h: 0.05, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/no.png', category: 'global' },
+  { id: 'g13', name: 'کرۆنی دانیمارکی بۆ دینار', code: 'DKK/IQD', symbol: 'IQD', buy: 21300, sell: 21500, change24h: 0.1, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/dk.png', category: 'global' },
+  { id: 'g14', name: 'ڕیاڵی قەتەری بۆ دینار', code: 'QAR/IQD', symbol: 'IQD', buy: 41400, sell: 41600, change24h: 0.0, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/qa.png', category: 'global' },
+  { id: 'g15', name: 'ڕیاڵی عومانی بۆ دینار', code: 'OMR/IQD', symbol: 'IQD', buy: 392000, sell: 394000, change24h: 0.0, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/om.png', category: 'global' },
+  { id: 'g16', name: 'دیناری بەحرەینی بۆ دینار', code: 'BHD/IQD', symbol: 'IQD', buy: 400000, sell: 402000, change24h: 0.0, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/bh.png', category: 'global' },
+  { id: 'g17', name: 'دیناری ئوردنی بۆ دینار', code: 'JOD/IQD', symbol: 'IQD', buy: 213000, sell: 215000, change24h: 0.0, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/jo.png', category: 'global' },
+  { id: 'g18', name: 'پەسۆی مەکسیکی بۆ دینار', code: 'MXN/IQD', symbol: 'IQD', buy: 8800, sell: 9000, change24h: 0.2, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/mx.png', category: 'global' },
+  { id: 'g19', name: 'دۆلاری سەنگافوری بۆ دینار', code: 'SGD/IQD', symbol: 'IQD', buy: 112000, sell: 113000, change24h: 0.1, lastUpdated: new Date().toISOString(), change: 'up', flag: 'https://flagcdn.com/w80/sg.png', category: 'global' },
+  { id: 'g20', name: 'دۆلاری هۆنگ کۆنگ بۆ دینار', code: 'HKD/IQD', symbol: 'IQD', buy: 19300, sell: 19500, change24h: 0.0, lastUpdated: new Date().toISOString(), change: 'neutral', flag: 'https://flagcdn.com/w80/hk.png', category: 'global' }
 ];
 
 export const INITIAL_METALS: MetalRate[] = [

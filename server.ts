@@ -18,8 +18,13 @@ async function ensureDataDir() {
     let users = [];
     try {
       const data = await fs.readFile(USERS_FILE, "utf-8");
-      if (data && data.trim()) {
-        users = JSON.parse(data);
+      if (data && data.trim() && data.trim() !== 'undefined') {
+        try {
+          users = JSON.parse(data);
+        } catch (e) {
+          console.error("Error parsing users file:", e);
+          users = [];
+        }
       } else {
         users = [];
       }
@@ -74,8 +79,13 @@ async function startServer() {
     try {
       const data = await fs.readFile(USERS_FILE, "utf-8");
       let users = [];
-      if (data && data.trim()) {
-        users = JSON.parse(data);
+      if (data && data.trim() && data.trim() !== 'undefined') {
+        try {
+          users = JSON.parse(data);
+        } catch (e) {
+          console.error("Error parsing users file in GET /api/users:", e);
+          users = [];
+        }
       }
       res.json(Array.isArray(users) ? users : []);
     } catch (err) {
@@ -90,8 +100,13 @@ async function startServer() {
       let users = [];
       try {
         const data = await fs.readFile(USERS_FILE, "utf-8");
-        if (data && data.trim()) {
-          users = JSON.parse(data);
+        if (data && data.trim() && data.trim() !== 'undefined') {
+          try {
+            users = JSON.parse(data);
+          } catch (e) {
+            console.error("Error parsing users file in POST /api/users:", e);
+            users = [];
+          }
         }
         if (!Array.isArray(users)) users = [];
       } catch (e) {
@@ -132,8 +147,13 @@ async function startServer() {
       let users = [];
       try {
         const data = await fs.readFile(USERS_FILE, "utf-8");
-        if (data && data.trim()) {
-          users = JSON.parse(data);
+        if (data && data.trim() && data.trim() !== 'undefined') {
+          try {
+            users = JSON.parse(data);
+          } catch (e) {
+            console.error("Error parsing users file in POST /api/login:", e);
+            users = [];
+          }
         } else {
           users = [];
         }
@@ -169,7 +189,15 @@ async function startServer() {
   app.get("/api/config", async (req, res) => {
     try {
       const data = await fs.readFile(CONFIG_FILE, "utf-8");
-      const config = data && data.trim() ? JSON.parse(data) : {};
+      let config = {};
+      if (data && data.trim() && data.trim() !== 'undefined') {
+        try {
+          config = JSON.parse(data);
+        } catch (e) {
+          console.error("Error parsing config file:", e);
+          config = {};
+        }
+      }
       res.json(config);
     } catch (err) {
       res.json({});

@@ -25,7 +25,13 @@ export const cryptoService = {
       
       const requests = symbols.map(symbol => 
         fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
-          .then(res => res.json())
+          .then(res => {
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+              return res.json();
+            }
+            return null;
+          })
           .catch(() => null)
       );
 

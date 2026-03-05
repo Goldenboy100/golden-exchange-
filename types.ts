@@ -117,4 +117,4 @@ export interface Transaction {
 
 export type ThemeMode = 'light' | 'dark' | 'system' | 'paper';
 export type LanguageCode = 'ku' | 'ar' | 'en';
-export type ViewMode = 'market' | 'metals' | 'crypto' | 'admin' | 'converter' | 'settings' | 'developer' | 'favorites' | 'kargeri' | 'editor' | 'accounts';
+export type ViewMode = 'market' | 'metals' | 'crypto' | 'admin' | 'converter' | 'settings' | 'developer' | 'favorites' | 'kargeri' | 'editor' | 'accounts' | 'wallet';

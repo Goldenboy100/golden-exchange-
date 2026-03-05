@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Settings, ChevronLeft, Moon, Languages, ShieldCheck, LogOut, Check, User as UserIcon, Crown, Shield, Gem, Pen, Cpu, DollarSign, Database, AlertCircle } from 'lucide-react';
+import { Settings, ChevronLeft, Moon, Languages, ShieldCheck, LogOut, Check, User as UserIcon, Crown, Shield, Gem, Pen, Cpu, DollarSign, Database, AlertCircle, Wallet } from 'lucide-react';
 import { User, ViewMode, ThemeMode, LanguageCode, AppConfig } from '../types.ts';
 import { isSupabaseConfigured } from '../src/lib/supabase';
 
@@ -218,6 +218,27 @@ const SettingsView: React.FC<SettingsViewProps> = ({
               <ChevronLeft size={18} className="text-slate-300" />
             </button>
           )}
+        </div>
+      </div>
+
+      <div className="space-y-4 relative z-10">
+        <h3 className="text-[9px] font-black text-slate-400 mx-4 uppercase tracking-[0.4em]">تایبەت</h3>
+        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden">
+          <button 
+            onClick={() => onViewChange('wallet')} 
+            className="w-full p-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-5">
+              <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600">
+                <Wallet size={20} />
+              </div>
+              <div className="text-right">
+                <p className="font-black text-lg text-slate-800 dark:text-slate-200 uppercase">جزدانی من</p>
+                <p className="text-[10px] font-bold text-emerald-500 mt-0.5">Wisebudget Tracker</p>
+              </div>
+            </div>
+            <ChevronLeft size={18} className="text-slate-300" />
+          </button>
         </div>
       </div>
 

@@ -121,6 +121,92 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
     setCmdInput('');
 
     if (cmd === 'clear') setTerminalLogs([]);
+    else if (cmd === 'help') {
+      setTerminalLogs(prev => [
+        ...prev,
+        "Available Commands:",
+        "  help      - Show this help message",
+        "  clear     - Clear terminal logs",
+        "  check     - specific diagnostic scan of localStorage",
+        "  fix       - Attempt to repair corrupted data",
+        "  backup    - Download full system backup",
+        "  reset     - Reset UI configuration to defaults",
+        "  wipe      - Factory reset (clears all data)",
+        "  deploy    - Simulate deployment to Vercel"
+      ]);
+    }
+    else if (cmd === 'check') {
+      setTerminalLogs(prev => [...prev, "[DIAGNOSTIC] Scanning local storage integrity..."]);
+      const keys = ['wisebudget_user', 'wisebudget_config', 'wisebudget_rates', 'wisebudget_metals', 'wisebudget_crypto', 'wisebudget_headlines', 'wisebudget_wallet_tx'];
+      let issuesFound = 0;
+      
+      keys.forEach(key => {
+        const item = localStorage.getItem(key);
+        if (item) {
+          try {
+            if (item === 'undefined' || item === 'null') {
+              setTerminalLogs(prev => [...prev, `[WARN] Key '${key}' contains literal '${item}' string.`]);
+              issuesFound++;
+            } else {
+              try {
+                const parsed = JSON.parse(item);
+                if (parsed === null && item.trim() !== 'null') throw new Error("Invalid JSON");
+              } catch (e) {
+                throw e;
+              }
+              setTerminalLogs(prev => [...prev, `[OK] ${key} integrity verified.`]);
+            }
+          } catch (e) {
+            setTerminalLogs(prev => [...prev, `[ERR] ${key} is corrupted: ${String(e)}`]);
+            issuesFound++;
+          }
+        } else {
+          setTerminalLogs(prev => [...prev, `[INFO] ${key} is empty (using defaults).`]);
+        }
+      });
+      
+      if (issuesFound > 0) {
+        setTerminalLogs(prev => [...prev, `[WARN] Scan complete. ${issuesFound} issues found. Run 'fix' to attempt repair.`]);
+      } else {
+        setTerminalLogs(prev => [...prev, "[OK] Scan complete. System is healthy."]);
+      }
+    }
+    else if (cmd === 'fix') {
+      setTerminalLogs(prev => [...prev, "[FIX] Attempting to repair corrupted data..."]);
+      const keys = ['wisebudget_user', 'wisebudget_config', 'wisebudget_rates', 'wisebudget_metals', 'wisebudget_crypto', 'wisebudget_headlines', 'wisebudget_wallet_tx'];
+      let fixedCount = 0;
+      
+      keys.forEach(key => {
+        const item = localStorage.getItem(key);
+        if (item) {
+          try {
+            if (item === 'undefined' || item === 'null') {
+              localStorage.removeItem(key);
+              setTerminalLogs(prev => [...prev, `[FIXED] Removed invalid '${key}' (was '${item}').`]);
+              fixedCount++;
+            } else {
+              try {
+                const parsed = JSON.parse(item);
+                if (parsed === null && item.trim() !== 'null') throw new Error("Invalid JSON");
+              } catch (e) {
+                throw e;
+              }
+            }
+          } catch (e) {
+            localStorage.removeItem(key);
+            setTerminalLogs(prev => [...prev, `[FIXED] Removed corrupted '${key}'.`]);
+            fixedCount++;
+          }
+        }
+      });
+      
+      if (fixedCount > 0) {
+        setTerminalLogs(prev => [...prev, `[SUCCESS] Repaired ${fixedCount} issues. Please reload the app.`]);
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        setTerminalLogs(prev => [...prev, "[INFO] No issues found to fix."]);
+      }
+    }
     else if (cmd === 'backup' || cmd === 'download' || cmd === 'export') downloadFullData();
     else if (cmd === 'save' || cmd === 'sync') manualSync();
     else if (cmd === 'deploy' || cmd === 'push') handleDeploy();
@@ -144,7 +230,7 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
         window.location.reload(); 
       }
     }
-    else setTerminalLogs(prev => [...prev, `[ERR] Command not recognized: '${cmd}'`]);
+    else setTerminalLogs(prev => [...prev, `[ERR] Command not recognized: '${cmd}'. Type 'help' for list.`]);
   };
 
   const toggleTab = (tabId: string) => {
@@ -313,9 +399,14 @@ const DeveloperView: React.FC<DeveloperViewProps> = ({
               placeholder="Welcome Title..."
               value={config.translations?.[language]?.login_title || ''}
               onChange={(e) => {
-                const newTranslations = config.translations ? JSON.parse(JSON.stringify(config.translations)) : {};
-                if (!newTranslations[language]) newTranslations[language] = {};
-                newTranslations[language].login_title = e.target.value;
+                let newTranslations = {};
+                try {
+                  newTranslations = config.translations ? JSON.parse(JSON.stringify(config.translations)) : {};
+                } catch (e) {
+                  console.error("Error cloning translations:", e);
+                }
+                if (!newTranslations[language]) (newTranslations as any)[language] = {};
+                (newTranslations as any)[language].login_title = e.target.value;
                 onUpdateConfig({...config, translations: newTranslations});
               }}
               className="w-full bg-white dark:bg-slate-800 text-sm p-2 rounded-md font-bold"

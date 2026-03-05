@@ -53,6 +53,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
   const [cartStatus, setCartStatus] = useState<'paid' | 'pending'>('paid');
   const [cartDueDate, setCartDueDate] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedFormCategory, setSelectedFormCategory] = useState<string>('all');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const productImgRef = useRef<HTMLInputElement>(null);
@@ -341,6 +342,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
 
     onAddTransaction(newTransaction);
     setFormData({ itemName: '', type: 'buy', amount: '', price: '', profit: '', image: '', note: '', customerName: '', status: 'paid', dueDate: '' });
+    setSelectedFormCategory('all');
     setShowAddForm(false);
   };
 
@@ -705,76 +707,89 @@ const AccountsView: React.FC<AccountsViewProps> = ({
 
       {/* Header & Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 dark:border-white/5 shadow-xl">
-          <div className="flex items-center gap-6">
+        <div className="relative overflow-hidden bg-gradient-to-br from-rose-500/10 to-transparent backdrop-blur-xl p-6 rounded-[2rem] border border-rose-500/20 shadow-xl group">
+          <div className="absolute -right-6 -top-6 text-rose-500/5 group-hover:text-rose-500/10 transition-colors duration-500">
+            <TrendingDown size={120} />
+          </div>
+          <div className="flex items-center gap-6 relative z-10">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-rose-500/10 rounded-xl text-rose-500">
+                <div className="p-2 bg-rose-500/20 rounded-xl text-rose-500">
                   <TrendingDown size={20} />
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('total_spending')}</span>
+                <span className="text-[10px] font-black text-rose-500/70 uppercase tracking-widest">{t('total_spending')}</span>
               </div>
-              <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{stats.totalSpending.toLocaleString()} {t('iqd')}</p>
+              <p className="text-3xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stats.totalSpending.toLocaleString()} <span className="text-sm text-slate-400">{t('iqd')}</span></p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 dark:border-white/5 shadow-xl">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-500">
-              <TrendingUp size={20} />
-            </div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('total_income')}</span>
+        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500/10 to-transparent backdrop-blur-xl p-6 rounded-[2rem] border border-emerald-500/20 shadow-xl group">
+          <div className="absolute -right-6 -top-6 text-emerald-500/5 group-hover:text-emerald-500/10 transition-colors duration-500">
+            <TrendingUp size={120} />
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{stats.totalSell.toLocaleString()} {t('iqd')}</p>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-500">
+                <TrendingUp size={20} />
+              </div>
+              <span className="text-[10px] font-black text-emerald-500/70 uppercase tracking-widest">{t('total_income')}</span>
+            </div>
+            <p className="text-3xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stats.totalSell.toLocaleString()} <span className="text-sm text-slate-400">{t('iqd')}</span></p>
+          </div>
         </div>
 
-        <div className={`p-6 rounded-[2rem] border shadow-xl backdrop-blur-xl ${stats.profit >= 0 ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-rose-500/10 border-rose-500/20'}`}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-xl ${stats.profit >= 0 ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}`}>
-              <DollarSign size={20} />
-            </div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('profit_loss')}</span>
+        <div className={`relative overflow-hidden p-6 rounded-[2rem] border shadow-xl backdrop-blur-xl group ${stats.profit >= 0 ? 'bg-gradient-to-br from-emerald-500/10 to-transparent border-emerald-500/20' : 'bg-gradient-to-br from-rose-500/10 to-transparent border-rose-500/20'}`}>
+          <div className={`absolute -right-6 -top-6 transition-colors duration-500 ${stats.profit >= 0 ? 'text-emerald-500/5 group-hover:text-emerald-500/10' : 'text-rose-500/5 group-hover:text-rose-500/10'}`}>
+            <DollarSign size={120} />
           </div>
-          <p className={`text-2xl font-black tabular-nums ${stats.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-            {stats.profit >= 0 ? '+' : ''}{stats.profit.toLocaleString()} {t('iqd')}
-          </p>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`p-2 rounded-xl ${stats.profit >= 0 ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}`}>
+                <DollarSign size={20} />
+              </div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${stats.profit >= 0 ? 'text-emerald-500/70' : 'text-rose-500/70'}`}>{t('profit_loss')}</span>
+            </div>
+            <p className={`text-3xl font-black tabular-nums tracking-tight ${stats.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+              {stats.profit >= 0 ? '+' : ''}{stats.profit.toLocaleString()} <span className="text-sm opacity-50">{t('iqd')}</span>
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-[2rem] border border-white/10 mx-2 print:hidden overflow-x-auto no-scrollbar">
+      <div className="flex bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-1.5 rounded-[2rem] border border-white/20 dark:border-white/5 mx-2 print:hidden overflow-x-auto no-scrollbar shadow-lg">
         <button 
           onClick={() => setActiveTab('transactions')}
-          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'transactions' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all duration-300 ${activeTab === 'transactions' ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[0.98]' : 'text-slate-500 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-primary'}`}
         >
           <List size={18} />
           {t('transactions')}
         </button>
         <button 
           onClick={() => setActiveTab('inventory')}
-          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'inventory' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all duration-300 ${activeTab === 'inventory' ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[0.98]' : 'text-slate-500 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-primary'}`}
         >
           <LayoutGrid size={18} />
           {t('inventory')}
         </button>
         <button 
           onClick={() => setActiveTab('pos')}
-          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'pos' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all duration-300 ${activeTab === 'pos' ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[0.98]' : 'text-slate-500 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-primary'}`}
         >
           <ShoppingCart size={18} />
           {t('pos')}
         </button>
         <button 
           onClick={() => setActiveTab('customers')}
-          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'customers' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all duration-300 ${activeTab === 'customers' ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[0.98]' : 'text-slate-500 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-primary'}`}
         >
           <Users size={18} />
           {t('customers')}
         </button>
         <button 
           onClick={() => setActiveTab('reports')}
-          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'reports' ? 'bg-white dark:bg-slate-800 text-primary shadow-xl' : 'text-slate-400'}`}
+          className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-4 rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all duration-300 ${activeTab === 'reports' ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-xl shadow-primary/20 scale-[0.98]' : 'text-slate-500 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-primary'}`}
         >
           <BarChart3 size={18} />
           {t('reports')}
@@ -809,9 +824,9 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                 <button
                   key={f.id}
                   onClick={() => setFilterType(f.id as any)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-wider whitespace-nowrap transition-all ${filterType === f.id ? 'bg-primary text-white shadow-lg' : 'bg-white/40 dark:bg-slate-900/40 text-slate-500 hover:bg-white/60'}`}
+                  className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-wider whitespace-nowrap transition-all duration-300 ${filterType === f.id ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/20 scale-[0.98]' : 'bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/5 text-slate-500 hover:bg-white/60 hover:text-primary'}`}
                 >
-                  <f.icon size={14} />
+                  <f.icon size={16} />
                   {f.label}
                 </button>
               ))}
@@ -842,6 +857,42 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('item_name')}</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                      <select
+                        value={selectedFormCategory}
+                        onChange={(e) => setSelectedFormCategory(e.target.value)}
+                        className="w-full bg-white dark:bg-slate-800 border border-white/20 dark:border-white/5 p-3 rounded-xl outline-none font-bold text-xs shadow-inner appearance-none"
+                      >
+                        <option value="all">{t('all_categories')}</option>
+                        {Array.from(new Set([
+                          ...categories.map(c => c.name),
+                          ...userProducts.map(p => p.category).filter(Boolean)
+                        ])).map(cat => (
+                          <option key={cat} value={cat!}>{cat}</option>
+                        ))}
+                      </select>
+                      <select
+                        onChange={(e) => {
+                          const product = userProducts.find(p => p.id === e.target.value);
+                          if (product) {
+                            setFormData({
+                              ...formData,
+                              itemName: product.name,
+                              price: product.defaultPrice.toString(),
+                              image: product.image || ''
+                            });
+                          }
+                        }}
+                        className="w-full bg-white dark:bg-slate-800 border border-white/20 dark:border-white/5 p-3 rounded-xl outline-none font-bold text-xs shadow-inner appearance-none"
+                      >
+                        <option value="">{t('select_product')}</option>
+                        {userProducts
+                          .filter(p => selectedFormCategory === 'all' || p.category === selectedFormCategory)
+                          .map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                      </select>
+                    </div>
                     <div className="relative">
                       <Package className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                       <input 
@@ -849,7 +900,7 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                         value={formData.itemName}
                         onChange={e => setFormData({...formData, itemName: e.target.value})}
                         className="w-full bg-white dark:bg-slate-800 border border-white/20 dark:border-white/5 p-4 pl-12 rounded-2xl outline-none font-bold text-sm shadow-inner"
-                        placeholder="{t('example_iphone_dollar_gold')}"
+                        placeholder={t('example_iphone_dollar_gold')}
                       />
                     </div>
                   </div>
@@ -1042,12 +1093,15 @@ const AccountsView: React.FC<AccountsViewProps> = ({
 
           {/* Transactions List */}
           <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-2xl overflow-hidden mx-2">
-            <div className="px-8 py-6 border-b border-white/10 flex items-center justify-between">
+            <div className="px-8 py-6 border-b border-white/10 flex items-center justify-between bg-white/20 dark:bg-slate-800/20">
               <h3 className="text-sm font-black text-primary uppercase tracking-widest italic">{t('transaction_list')}</h3>
-              <span className="text-[10px] font-bold text-slate-500 opacity-50">{userTransactions.length} Items</span>
+              <div className="flex items-center gap-2">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{userTransactions.length} Items</span>
+              </div>
             </div>
 
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="p-4 space-y-3">
               {userTransactions.length === 0 ? (
                 <div className="py-20 text-center opacity-30">
                   <FileText size={48} className="mx-auto mb-4" />
@@ -1055,66 +1109,67 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                 </div>
               ) : (
                 userTransactions.map(tx => (
-                  <div key={tx.id} className="p-6 hover:bg-white/10 dark:hover:bg-white/[0.05] transition-all group">
+                  <div key={tx.id} className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-white/40 dark:border-white/10 p-5 rounded-[2rem] hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
                     <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4 min-w-0">
+                      <div className="flex items-center gap-5 min-w-0">
                         <div className="relative shrink-0">
                           {tx.image ? (
-                            <img src={tx.image} alt={tx.itemName} className="w-16 h-16 rounded-2xl object-cover shadow-lg border border-white/20" />
+                            <img src={tx.image} alt={tx.itemName} className="w-16 h-16 rounded-[1.2rem] object-cover shadow-md border border-white/20" />
                           ) : (
-                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${tx.type === 'buy' ? 'bg-emerald-500/20 text-emerald-500' : (tx.type === 'expense' ? 'bg-red-500/20 text-red-500' : (tx.type === 'rent' ? 'bg-orange-500/20 text-orange-500' : 'bg-rose-500/20 text-rose-500'))}`}>
-                              {tx.type === 'expense' ? <DollarSign size={24} /> : (tx.type === 'rent' ? <Home size={24} /> : <Package size={24} />)}
+                            <div className={`w-16 h-16 rounded-[1.2rem] flex items-center justify-center shadow-inner ${tx.type === 'buy' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white' : (tx.type === 'expense' ? 'bg-gradient-to-br from-red-400 to-red-600 text-white' : (tx.type === 'rent' ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' : 'bg-gradient-to-br from-rose-400 to-rose-600 text-white'))}`}>
+                              {tx.type === 'expense' ? <DollarSign size={28} strokeWidth={2.5} /> : (tx.type === 'rent' ? <Home size={28} strokeWidth={2.5} /> : <Package size={28} strokeWidth={2.5} />)}
                             </div>
                           )}
-                          <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[10px] text-white ${tx.type === 'buy' ? 'bg-emerald-500' : (tx.type === 'expense' ? 'bg-red-500' : (tx.type === 'rent' ? 'bg-orange-500' : 'bg-rose-500'))}`}>
-                            {tx.type === 'buy' ? <TrendingUp size={10} /> : (tx.type === 'expense' ? <DollarSign size={10} /> : (tx.type === 'rent' ? <Home size={10} /> : <TrendingDown size={10} />))}
+                          <div className={`absolute -bottom-2 -right-2 w-7 h-7 rounded-full border-[3px] border-white dark:border-slate-800 flex items-center justify-center text-white shadow-md ${tx.type === 'buy' ? 'bg-emerald-500' : (tx.type === 'expense' ? 'bg-red-500' : (tx.type === 'rent' ? 'bg-orange-500' : 'bg-rose-500'))}`}>
+                            {tx.type === 'buy' ? <TrendingUp size={12} strokeWidth={3} /> : (tx.type === 'expense' ? <DollarSign size={12} strokeWidth={3} /> : (tx.type === 'rent' ? <Home size={12} strokeWidth={3} /> : <TrendingDown size={12} strokeWidth={3} />))}
                           </div>
                         </div>
                         <div className="min-w-0">
-                          <h4 className="text-lg font-black text-slate-900 dark:text-white truncate">{tx.itemName}</h4>
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${tx.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500' : (tx.type === 'expense' ? 'bg-red-500/10 text-red-500' : (tx.type === 'rent' ? 'bg-orange-500/10 text-orange-500' : 'bg-rose-500/10 text-rose-500'))}`}>
+                          <h4 className="text-xl font-black text-slate-900 dark:text-white truncate tracking-tight">{tx.itemName}</h4>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest shadow-sm ${tx.type === 'buy' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : (tx.type === 'expense' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' : (tx.type === 'rent' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'))}`}>
                               {tx.type === 'buy' ? t('buy') : (tx.type === 'expense' ? t('expense') : (tx.type === 'rent' ? t('rent') : t('sell')))}
                             </span>
-                            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800/50 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
                               <Calendar size={12} />
                               {new Date(tx.date).toLocaleDateString('ku-IQ')}
                             </div>
                             {tx.status === 'pending' && (
-                              <span className="text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider bg-amber-500/10 text-amber-500 flex items-center gap-1">
-                                <Clock size={10} />
+                              <span className="text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1.5 shadow-sm animate-pulse">
+                                <Clock size={12} />
                                 {t('debt')}
                               </span>
                             )}
                           </div>
                           {tx.customerName && (
-                            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 mt-1">
-                              <UserIcon size={12} />
+                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-400 mt-2">
+                              <UserIcon size={14} className="text-primary" />
                               {tx.customerName}
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <div className="text-right shrink-0">
-                        <p className={`text-xl font-black tabular-nums ${tx.type === 'buy' ? 'text-rose-500' : (tx.type === 'expense' || tx.type === 'rent' ? 'text-red-500' : 'text-emerald-500')}`}>
-                          {tx.type === 'buy' || tx.type === 'expense' || tx.type === 'rent' ? '-' : '+'}{tx.total.toLocaleString()} IQD
+                      <div className="text-right shrink-0 flex flex-col items-end">
+                        <p className={`text-2xl font-black tabular-nums tracking-tight ${tx.type === 'buy' ? 'text-rose-500' : (tx.type === 'expense' || tx.type === 'rent' ? 'text-red-500' : 'text-emerald-500')}`}>
+                          {tx.type === 'buy' || tx.type === 'expense' || tx.type === 'rent' ? '-' : '+'}{tx.total.toLocaleString()} <span className="text-sm opacity-60">IQD</span>
                         </p>
                         {tx.profit !== undefined && tx.type !== 'expense' && tx.type !== 'rent' && (
-                          <p className={`text-[10px] font-black mt-1 ${tx.profit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                          <div className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-md text-[10px] font-black ${tx.profit >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'}`}>
                             {t('profit')}: {tx.profit >= 0 ? '+' : ''}{tx.profit.toLocaleString()} IQD
-                          </p>
+                          </div>
                         )}
                         {tx.type !== 'expense' && tx.type !== 'rent' && (
-                          <p className="text-[10px] font-bold text-slate-400 mt-1">
+                          <p className="text-[11px] font-bold text-slate-400 mt-1.5">
                             {tx.amount.toLocaleString()} × {tx.price.toLocaleString()} IQD
                           </p>
                         )}
                         {tx.status === 'pending' && (
                           <button 
                             onClick={() => handleMarkAsPaid(tx)}
-                            className="mt-2 text-[10px] font-black text-emerald-500 border border-emerald-500/20 px-2 py-1 rounded-lg hover:bg-emerald-500 hover:text-white transition-all print:hidden"
+                            className="mt-3 text-[10px] font-black text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 px-3 py-1.5 rounded-xl transition-all print:hidden flex items-center gap-1.5"
                           >
+                            <CheckCircle size={14} />
                             {t('mark_as_paid')}
                           </button>
                         )}
@@ -1126,14 +1181,14 @@ const AccountsView: React.FC<AccountsViewProps> = ({
                             onDeleteTransaction(tx.id);
                           }
                         }}
-                        className="p-2 text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
+                        className="p-3 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-sm ml-2"
                       >
                         <Trash2 size={18} />
                       </button>
                     </div>
                     {tx.note && (
-                      <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-[11px] font-bold text-slate-500 italic flex items-start gap-2">
-                        <FileText size={14} className="shrink-0 mt-0.5" />
+                      <div className="mt-4 p-3.5 bg-slate-100/50 dark:bg-slate-900/50 rounded-xl border border-slate-200/50 dark:border-slate-700/50 text-xs font-bold text-slate-500 italic flex items-start gap-2.5">
+                        <FileText size={16} className="shrink-0 mt-0.5 text-slate-400" />
                         {tx.note}
                       </div>
                     )}

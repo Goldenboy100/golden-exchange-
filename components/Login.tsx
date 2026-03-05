@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, Key, Mail, ShieldAlert, UserPlus, ArrowRight } from 'lucide-react';
 import { User } from '../types';
-import { supabase, isSupabaseConfigured } from '../src/lib/supabase';
+// import { supabase, isSupabaseConfigured } from '../src/lib/supabase';
 
 import { AppConfig } from '../types';
 
@@ -47,6 +47,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRegister, t, config }) => {
       setName('');
     } else {
       try {
+        /*
         if (isSupabaseConfigured()) {
           const { data, error } = await supabase
             .from('users')
@@ -69,6 +70,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRegister, t, config }) => {
             return;
           }
         }
+        */
 
         const response = await fetch('/api/login', {
           method: 'POST',
@@ -77,19 +79,54 @@ const Login: React.FC<LoginProps> = ({ onLogin, onRegister, t, config }) => {
         });
 
         if (response.ok) {
-          const user = await response.json();
-          if (user.status === 'pending') {
-            setError('هەژمارەکەت هێشتا پەسەند نەکراوە. تکایە چاوەڕێ بە.');
-          } else if (user.status === 'blocked') {
-            setError('هەژمارەکەت ڕاگیراوە!');
-          } else if (user.expiresAt && new Date(user.expiresAt) < new Date()) {
-            setError('کاتەکەت تەواو بووە! تکایە پەیوەندی بە ئەدمینەوە بکە.');
-          } else {
-            onLogin(user);
+          try {
+            const contentType = response.headers.get("content-type");
+            let user;
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+              user = await response.json();
+            } else {
+              const text = await response.text();
+              console.error("Expected JSON but received:", text);
+              setError('سێرڤەر وەڵامێکی نادروستی نارد');
+              return;
+            }
+            
+            if (!user) {
+               setError('سێرڤەر وەڵامێکی نادروستی نارد');
+               return;
+            }
+
+            if (user.status === 'pending') {
+              setError('هەژمارەکەت هێشتا پەسەند نەکراوە. تکایە چاوەڕێ بە.');
+            } else if (user.status === 'blocked') {
+              setError('هەژمارەکەت ڕاگیراوە!');
+            } else if (user.expiresAt && new Date(user.expiresAt) < new Date()) {
+              setError('کاتەکەت تەواو بووە! تکایە پەیوەندی بە ئەدمینەوە بکە.');
+            } else {
+              onLogin(user);
+            }
+          } catch (e) {
+            console.error("Error parsing user JSON:", e);
+            setError('هەڵەیەک ڕوویدا لە خوێندنەوەی داتا');
           }
         } else {
-          const err = await response.json();
-          setError(err.error || 'زانیارییەکان هەڵەیە!');
+          try {
+            const contentType = response.headers.get("content-type");
+            let errorMsg = 'زانیارییەکان هەڵەیە!';
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+              const err = await response.json();
+              if (err && err.error) {
+                errorMsg = err.error;
+              }
+            } else {
+              const text = await response.text();
+              console.error("Error response was not JSON:", text);
+            }
+            setError(errorMsg);
+          } catch (e) {
+            console.error("Error parsing error JSON:", e);
+            setError('زانیارییەکان هەڵەیە!');
+          }
         }
       } catch (err) {
         console.error("Login error:", err);

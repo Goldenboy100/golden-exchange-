@@ -17,6 +17,7 @@ import FavoritesView from './components/FavoritesView.tsx';
 import KargeriDashboard from './components/KargeriDashboard.tsx';
 import EditorDashboard from './components/EditorDashboard.tsx';
 import AccountsView from './components/AccountsView.tsx';
+import WalletView from './components/WalletView.tsx';
 import Login from './components/Login.tsx';
 import { supabase, isSupabaseConfigured } from './src/lib/supabase';
 
@@ -35,55 +36,62 @@ const App: React.FC = () => {
     }
   }, [appState]);
 
+
+
+  // Helper for safe JSON parsing from localStorage
+  const getStoredItem = <T,>(key: string, defaultValue: T): T => {
+    try {
+      const saved = localStorage.getItem(key);
+      if (!saved) return defaultValue;
+      const trimmed = String(saved).trim();
+      if (trimmed === 'undefined' || trimmed === 'null' || trimmed === '') return defaultValue;
+      return JSON.parse(trimmed);
+    } catch (e) {
+      console.error(`Error parsing localStorage key "${key}":`, e);
+      return defaultValue;
+    }
+  };
+
   const [rates, setRates] = useState<CurrencyRate[]>(() => {
-    try { 
-      const saved = localStorage.getItem(`${STORAGE_KEY}_rates`); 
-      if (!saved || saved === 'undefined') return INITIAL_RATES;
-      const data = JSON.parse(saved);
-      if (!Array.isArray(data)) return INITIAL_RATES;
-      // Ensure uniqueness by name and category (case-insensitive)
-      return data.filter((v: any, i: number, a: any[]) => 
-        a.findIndex(tx => tx.name.toLowerCase().trim() === v.name.toLowerCase().trim() && tx.category === v.category) === i
-      );
-    } catch { return INITIAL_RATES; }
+    const data = getStoredItem(`${STORAGE_KEY}_rates`, INITIAL_RATES);
+    if (!Array.isArray(data)) return INITIAL_RATES;
+    
+    const merged = [...data];
+    INITIAL_RATES.forEach(initial => {
+      if (!merged.find(r => r.id === initial.id)) {
+        merged.push(initial);
+      }
+    });
+    
+    // Ensure uniqueness by name and category (case-insensitive)
+    return merged.filter((v: any, i: number, a: any[]) => 
+      a.findIndex(tx => tx.name.toLowerCase().trim() === v.name.toLowerCase().trim() && tx.category === v.category) === i
+    );
   });
   const [metals, setMetals] = useState<MetalRate[]>(() => {
-    try { 
-      if (INITIAL_METALS.length === 0) return [];
-      const saved = localStorage.getItem(`${STORAGE_KEY}_metals`); 
-      if (!saved || saved === 'undefined') return INITIAL_METALS;
-      const data = JSON.parse(saved);
-      if (!Array.isArray(data)) return INITIAL_METALS;
-      // Ensure uniqueness by name and category (case-insensitive)
-      return data.filter((v: any, i: number, a: any[]) => 
-        a.findIndex(tx => tx.name.toLowerCase().trim() === v.name.toLowerCase().trim() && tx.category === v.category) === i
-      );
-    } catch { return INITIAL_METALS; }
+    const data = getStoredItem(`${STORAGE_KEY}_metals`, INITIAL_METALS);
+    if (!Array.isArray(data)) return INITIAL_METALS;
+    
+    const merged = [...data];
+    INITIAL_METALS.forEach(initial => {
+      if (!merged.find(m => m.id === initial.id)) {
+        merged.push(initial);
+      }
+    });
+    
+    // Ensure uniqueness by name and category (case-insensitive)
+    return merged.filter((v: any, i: number, a: any[]) => 
+      a.findIndex(tx => tx.name.toLowerCase().trim() === v.name.toLowerCase().trim() && tx.category === v.category) === i
+    );
   });
-  const [cryptoRates, setCryptoRates] = useState<CryptoRate[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_crypto`); return saved && saved !== 'undefined' ? JSON.parse(saved) : INITIAL_CRYPTO; } catch { return INITIAL_CRYPTO; }
-  });
-  const [headlines, setHeadlines] = useState<Headline[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_news`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
-  });
-  const [config, setConfig] = useState<AppConfig>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_config`); return saved && saved !== 'undefined' ? JSON.parse(saved) : DEFAULT_CONFIG; } catch { return DEFAULT_CONFIG; }
-  });
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_user`); return saved && saved !== 'undefined' ? JSON.parse(saved) : null; } catch { return null; }
-  });
-  const [favorites, setFavorites] = useState<string[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_favorites`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
-  });
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_transactions`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
-  });
-  const [products, setProducts] = useState<Product[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_products`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
-  });
-  const [categories, setCategories] = useState<Category[]>(() => {
-    try { const saved = localStorage.getItem(`${STORAGE_KEY}_categories`); return saved && saved !== 'undefined' ? JSON.parse(saved) : []; } catch { return []; }
-  });
+  const [cryptoRates, setCryptoRates] = useState<CryptoRate[]>(() => getStoredItem(`${STORAGE_KEY}_crypto`, INITIAL_CRYPTO));
+  const [headlines, setHeadlines] = useState<Headline[]>(() => getStoredItem(`${STORAGE_KEY}_news`, []));
+  const [config, setConfig] = useState<AppConfig>(() => getStoredItem(`${STORAGE_KEY}_config`, DEFAULT_CONFIG));
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getStoredItem(`${STORAGE_KEY}_user`, null));
+  const [favorites, setFavorites] = useState<string[]>(() => getStoredItem(`${STORAGE_KEY}_favorites`, []));
+  const [transactions, setTransactions] = useState<Transaction[]>(() => getStoredItem(`${STORAGE_KEY}_transactions`, []));
+  const [products, setProducts] = useState<Product[]>(() => getStoredItem(`${STORAGE_KEY}_products`, []));
+  const [categories, setCategories] = useState<Category[]>(() => getStoredItem(`${STORAGE_KEY}_categories`, []));
 
   const toggleFavorite = (id: string) => {
     setFavorites(prev => 
@@ -99,7 +107,6 @@ const App: React.FC = () => {
   const prevCryptoRef = React.useRef<CryptoRate[]>(cryptoRates);
   const prevHeadlinesRef = React.useRef<Headline[]>(headlines);
   const prevUsersRef = React.useRef<User[]>(users);
-  const prevTransactionsRef = React.useRef<Transaction[]>(transactions);
   const prevProductsRef = React.useRef<Product[]>(products);
   const prevCategoriesRef = React.useRef<Category[]>(categories);
 
@@ -228,30 +235,26 @@ const App: React.FC = () => {
     prevUsersRef.current = next;
   }, [users]);
 
-  // Sync Transactions to Supabase
-  useEffect(() => {
-    if (!isSupabaseConfigured() || transactions === prevTransactionsRef.current) return;
-    const prev = prevTransactionsRef.current;
-    const next = transactions;
-    
-    const deleted = prev.filter(p => !next.find(n => n.id === p.id));
-    const addedOrUpdated = next.filter(n => {
-      const p = prev.find(x => x.id === n.id);
-      return !p || JSON.stringify(p) !== JSON.stringify(n);
-    });
-
-    if (deleted.length > 0 || addedOrUpdated.length > 0) {
-      (async () => {
-        for (const item of deleted) {
-          await supabase.from('transactions').delete().eq('id', item.id);
-        }
-        if (addedOrUpdated.length > 0) {
-          await supabase.from('transactions').upsert(addedOrUpdated);
-        }
-      })();
+  const handleAddTransaction = async (newTx: Transaction) => {
+    setTransactions(prev => [...prev, newTx]);
+    if (isSupabaseConfigured()) {
+      await supabase.from('transactions').insert(newTx);
     }
-    prevTransactionsRef.current = next;
-  }, [transactions]);
+  };
+
+  const handleUpdateTransaction = async (updatedTx: Transaction) => {
+    setTransactions(prev => prev.map(tx => tx.id === updatedTx.id ? updatedTx : tx));
+    if (isSupabaseConfigured()) {
+      await supabase.from('transactions').update(updatedTx).eq('id', updatedTx.id);
+    }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    setTransactions(prev => prev.filter(tx => tx.id !== id));
+    if (isSupabaseConfigured()) {
+      await supabase.from('transactions').delete().eq('id', id);
+    }
+  };
 
   // Sync Products to Supabase
   useEffect(() => {
@@ -309,8 +312,14 @@ const App: React.FC = () => {
     
     if (isSupabaseConfigured()) {
       (async () => {
+        // Fetch current config first to compare and prevent infinite loop
+        const { data: currentConfig } = await supabase.from('config').select('*').single();
         const { id, ...rest } = config;
-        await supabase.from('config').upsert({ id: 1, ...rest });
+        
+        // Only update if there are actual changes
+        if (!currentConfig || JSON.stringify(currentConfig) !== JSON.stringify({ id: 1, ...rest })) {
+          await supabase.from('config').upsert({ id: 1, ...rest });
+        }
       })();
     } else {
       // Sync to local API
@@ -375,9 +384,18 @@ const App: React.FC = () => {
       try {
         const response = await safeFetch('/api/users');
         if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data)) {
-            setUsers(data);
+          try {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+              const data = await response.json();
+              if (Array.isArray(data)) {
+                setUsers(data);
+              }
+            } else {
+              console.warn("Expected JSON from /api/users but received:", await response.text());
+            }
+          } catch (e) {
+            console.error("Error parsing users JSON:", e);
           }
         } else {
           console.warn(`Local API returned status ${response.status} for users`);
@@ -392,16 +410,25 @@ const App: React.FC = () => {
       try {
         const response = await safeFetch('/api/config');
         if (response.ok) {
-          const data = await response.json();
-          if (data && Object.keys(data).length > 0) {
-            // Only update if different to avoid infinite loops if not careful
-            // But since we use a functional update or check, it should be fine
-            setConfig(prev => {
-              if (JSON.stringify(prev) !== JSON.stringify(data)) {
-                return { ...prev, ...data };
+          try {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+              const data = await response.json();
+              if (data && Object.keys(data).length > 0) {
+                // Only update if different to avoid infinite loops if not careful
+                // But since we use a functional update or check, it should be fine
+                setConfig(prev => {
+                  if (JSON.stringify(prev) !== JSON.stringify(data)) {
+                    return { ...prev, ...data };
+                  }
+                  return prev;
+                });
               }
-              return prev;
-            });
+            } else {
+              console.warn("Expected JSON from /api/config but received:", await response.text());
+            }
+          } catch (e) {
+            console.error("Error parsing config JSON:", e);
           }
         }
       } catch (err) {
@@ -465,15 +492,43 @@ const App: React.FC = () => {
           // Fetch Rates
           const { data: ratesData, error: ratesError } = await supabase.from('rates').select('*');
           if (ratesError) throw ratesError;
-          if (ratesData && ratesData.length > 0) setRates(ratesData);
+          if (ratesData && ratesData.length > 0) {
+            // Merge missing initial rates
+            const mergedRates = [...ratesData];
+            let changedRates = false;
+            INITIAL_RATES.forEach(initial => {
+              if (!mergedRates.find(r => r.id === initial.id)) {
+                mergedRates.push(initial);
+                changedRates = true;
+              }
+            });
+            setRates(mergedRates);
+          } else {
+            setRates(INITIAL_RATES);
+          }
 
           // Fetch Metals
           const { data: metalsData } = await supabase.from('metals').select('*');
-          if (metalsData && metalsData.length > 0) setMetals(metalsData);
+          if (metalsData && metalsData.length > 0) {
+            // Merge missing initial metals
+            const mergedMetals = [...metalsData];
+            INITIAL_METALS.forEach(initial => {
+              if (!mergedMetals.find(m => m.id === initial.id)) {
+                mergedMetals.push(initial);
+              }
+            });
+            setMetals(mergedMetals);
+          } else {
+            setMetals(INITIAL_METALS);
+          }
 
           // Fetch Crypto
           const { data: cryptoData } = await supabase.from('crypto').select('*');
-          if (cryptoData && cryptoData.length > 0) setCryptoRates(cryptoData);
+          if (cryptoData && cryptoData.length > 0) {
+            setCryptoRates(cryptoData);
+          } else {
+            setCryptoRates(INITIAL_CRYPTO);
+          }
 
           // Fetch News
           const { data: newsData } = await supabase.from('news').select('*').order('date', { ascending: false });
@@ -505,9 +560,18 @@ const App: React.FC = () => {
         try {
           const response = await safeFetch('/api/config');
           if (response.ok) {
-            const data = await response.json();
-            if (data && Object.keys(data).length > 0) {
-              setConfig(prev => ({ ...prev, ...data }));
+            try {
+              const contentType = response.headers.get("content-type");
+              if (contentType && contentType.indexOf("application/json") !== -1) {
+                const data = await response.json();
+                if (data && Object.keys(data).length > 0) {
+                  setConfig(prev => ({ ...prev, ...data }));
+                }
+              } else {
+                console.warn("Expected JSON from /api/config but received:", await response.text());
+              }
+            } catch (e) {
+              console.error("Error parsing config fallback JSON:", e);
             }
           }
         } catch (err) {
@@ -524,10 +588,13 @@ const App: React.FC = () => {
       const tables = ['rates', 'metals', 'crypto', 'news', 'config', 'transactions', 'products', 'categories'];
       tables.forEach(table => {
         const channel = supabase.channel(`public:${table}`)
-          .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
+          .on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
+            console.log(`Realtime update received for ${table}:`, payload);
             fetchData();
           })
-          .subscribe();
+          .subscribe((status) => {
+            console.log(`Subscription status for ${table}:`, status);
+          });
         channels.push(channel);
       });
     }
@@ -578,8 +645,19 @@ const App: React.FC = () => {
       if (response.ok) {
         setUsers(prev => [...prev, newUser]);
       } else {
-        const err = await response.json();
-        alert(err.error || "تۆمارکردن سەرکەوتوو نەبوو");
+        try {
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+            const err = await response.json();
+            alert((err && err.error) ? err.error : "تۆمارکردن سەرکەوتوو نەبوو");
+          } else {
+            console.warn("Expected JSON error from /api/users but received:", await response.text());
+            alert("تۆمارکردن سەرکەوتوو نەبوو");
+          }
+        } catch (e) {
+          console.error("Error parsing registration error JSON:", e);
+          alert("تۆمارکردن سەرکەوتوو نەبوو");
+        }
       }
     } catch (err) {
       console.error("Registration failed:", err);
@@ -626,92 +704,6 @@ const App: React.FC = () => {
 
   // --- LIVE SIMULATION ENGINE ---
   useEffect(() => {
-    // Market Service Integration (Global Borsa Data)
-    // Fetches data every 5 seconds to simulate live feed from global exchange
-    const marketTimer = setInterval(async () => {
-      try {
-        const { rates: newRates, metals: newMetals } = await marketService.fetchLiveMarketData();
-        
-        if (newRates && newRates.length > 0) {
-          setRates(prev => {
-            if (prev.length === 0) return newRates.map(r => ({
-              ...r,
-              id: r.id || `r_${Math.random().toString(36).substr(2, 9)}`,
-              buy: r.buy || 0,
-              sell: r.sell || 0,
-              change24h: r.change24h || 0,
-              lastUpdated: new Date().toISOString(),
-              change: 'neutral',
-              flag: r.flag || 'https://flagcdn.com/w80/un.png',
-              category: r.category || 'local'
-            } as CurrencyRate));
-
-            return prev.map(r => {
-              const update = newRates.find(u => u.code === r.code && u.category === r.category);
-              if (update) {
-                const change = update.buy! - r.buy;
-                let changeType: 'up' | 'down' | 'neutral' = 'neutral';
-                if (change > 0) changeType = 'up';
-                if (change < 0) changeType = 'down';
-
-                return {
-                  ...r,
-                  buy: update.buy || r.buy,
-                  sell: update.sell || r.sell,
-                  lastUpdated: new Date().toISOString(),
-                  change: changeType
-                };
-              }
-              return r;
-            });
-          });
-        }
-
-        if (newMetals && newMetals.length > 0) {
-          setMetals(prev => {
-            if (prev.length === 0) return newMetals.map(m => ({
-              ...m,
-              id: m.id || `m_${Math.random().toString(36).substr(2, 9)}`,
-              buy: m.buy || 0,
-              sell: m.sell || 0,
-              change24h: m.change24h || 0,
-              lastUpdated: new Date().toISOString(),
-              change: 'neutral',
-              icon: m.icon || 'https://cdn-icons-png.flaticon.com/512/2536/2536128.png',
-              unit: m.unit || '$'
-            } as MetalRate));
-
-            return prev.map(m => {
-              const update = newMetals.find(u => u.code === m.code && u.category === m.category);
-              if (update) {
-                const change = update.buy! - m.buy;
-                let changeType: 'up' | 'down' | 'neutral' = 'neutral';
-                if (change > 0) changeType = 'up';
-                if (change < 0) changeType = 'down';
-
-                // Notify on significant gold changes (> 0.50 USD)
-                if (Math.abs(change) > 0.50 && m.category === 'gold') {
-                   const action = change > 0 ? t('increased') : t('decreased');
-                   addNotification(`${t('price_of')} ${m.name} ${action} ${t('by_amount')} $${Math.abs(change).toFixed(2)}`, changeType, m.id);
-                }
-
-                return {
-                  ...m,
-                  buy: update.buy || m.buy,
-                  sell: update.sell || m.sell,
-                  lastUpdated: new Date().toISOString(),
-                  change: changeType
-                };
-              }
-              return m;
-            });
-          });
-        }
-      } catch (err) {
-        console.error("Market Service update failed", err);
-      }
-    }, 5000);
-
     // Crypto simulation every 10 seconds (Real Data)
     const cryptoTimer = setInterval(async () => {
       try {
@@ -735,7 +727,7 @@ const App: React.FC = () => {
       }
     }, 10000);
 
-    return () => { clearInterval(marketTimer); clearInterval(cryptoTimer); };
+    return () => { clearInterval(cryptoTimer); };
   }, []);
 
 
@@ -933,7 +925,8 @@ const App: React.FC = () => {
             case 'converter': return <Converter rates={rates} t={t} />;
             case 'favorites': return <FavoritesView rates={rates} metals={metals} cryptoRates={cryptoRates} favorites={favorites} toggleFavorite={toggleFavorite} t={t} config={config} />;
             case 'admin': return <AdminDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} users={users} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateUsers={handleUpdateUsers} onUpdateHeadlines={setHeadlines} t={t} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} />;
-            case 'accounts': return <AccountsView transactions={transactions} onAddTransaction={(newTx) => setTransactions(prev => [...prev, newTx])} onUpdateTransaction={(updatedTx) => setTransactions(prev => prev.map(tx => tx.id === updatedTx.id ? updatedTx : tx))} onDeleteTransaction={(id) => setTransactions(prev => prev.filter(tx => tx.id !== id))} products={products} onUpdateProducts={setProducts} categories={categories} onUpdateCategories={setCategories} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} t={t} onBack={() => setView('settings')} />;
+            case 'accounts': return <AccountsView transactions={transactions} onAddTransaction={handleAddTransaction} onUpdateTransaction={handleUpdateTransaction} onDeleteTransaction={handleDeleteTransaction} products={products} onUpdateProducts={setProducts} categories={categories} onUpdateCategories={setCategories} currentUser={currentUser!} config={config} onUpdateConfig={setConfig} t={t} onBack={() => setView('settings')} />;
+            case 'wallet': return <WalletView t={t} onBack={() => setView('settings')} />;
             case 'kargeri': return <KargeriDashboard users={users} t={t} config={config} />;
             case 'editor': return <EditorDashboard rates={rates} metals={metals} cryptoRates={cryptoRates} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateHeadlines={setHeadlines} t={t} config={config} onUpdateConfig={setConfig} currentUser={currentUser!} />;
             case 'developer': return <DeveloperView config={config} onUpdateConfig={setConfig} rates={rates} metals={metals} cryptoRates={cryptoRates} headlines={headlines} onUpdateRates={setRates} onUpdateMetals={setMetals} onUpdateCrypto={setCryptoRates} onUpdateHeadlines={setHeadlines} t={t} language={language} />;

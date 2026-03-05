@@ -34,15 +34,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   // Available tabs based on role
   const availableTabs = [
+    { id: 'rates', label: 'دراوەکان', icon: Coins, roles: ['developer', 'admin', 'editor'] },
+    { id: 'metals', label: 'کانزاکان', icon: Shield, roles: ['developer', 'admin', 'editor'] },
+    { id: 'crypto', label: 'کریپتۆ', icon: TrendingUp, roles: ['developer', 'admin', 'editor'] },
+    { id: 'news', label: 'هەواڵ', icon: Newspaper, roles: ['developer', 'admin', 'editor'] },
     { id: 'users', label: 'بەکارهێنەران', icon: UserCog, roles: ['developer', 'staff', 'admin'] },
   ].filter(tabItem => tabItem.roles.includes(currentUser.role));
 
-  const [tab, setTab] = useState<'users'>('users');
+  const [tab, setTab] = useState<'rates' | 'metals' | 'crypto' | 'news' | 'users'>('rates');
 
   // Ensure valid tab selection
   useEffect(() => {
-    setTab('users');
-  }, [currentUser.role]);
+    if (availableTabs.length > 0 && !availableTabs.find(t => t.id === tab)) {
+      setTab(availableTabs[0].id as any);
+    }
+  }, [currentUser.role, availableTabs, tab]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
@@ -80,6 +86,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     const now = new Date().toISOString();
     
+    if (tab === 'rates') onUpdateRates(prev => isAdding ? [{ ...editForm, id: `r_${Date.now()}` }, ...prev] : prev.map(x => x.id === editingId ? editForm : x));
+    if (tab === 'metals') onUpdateMetals(prev => isAdding ? [{ ...editForm, id: `m_${Date.now()}` }, ...prev] : prev.map(x => x.id === editingId ? editForm : x));
+    if (tab === 'crypto') onUpdateCrypto(prev => isAdding ? [{ ...editForm, id: `c_${Date.now()}` }, ...prev] : prev.map(x => x.id === editingId ? editForm : x));
+    if (tab === 'news') onUpdateHeadlines(prev => isAdding ? [{ ...editForm, id: `n_${Date.now()}`, date: now }, ...prev] : prev.map(x => x.id === editingId ? editForm : x));
     if (tab === 'users') {
       const userItem = { ...editForm };
       onUpdateUsers(prev => isAdding ? [{ ...userItem, id: `u_${Date.now()}`, createdAt: now }, ...prev] : prev.map(u => u.id === editingId ? userItem : u));
@@ -94,12 +104,27 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setEditForm(null);
     }
     
+    if (tab === 'rates') onUpdateRates(prev => prev.filter(x => x.id !== id));
+    if (tab === 'metals') onUpdateMetals(prev => prev.filter(x => x.id !== id));
+    if (tab === 'crypto') onUpdateCrypto(prev => prev.filter(x => x.id !== id));
+    if (tab === 'news') onUpdateHeadlines(prev => prev.filter(x => x.id !== id));
     if (tab === 'users') onUpdateUsers(prev => prev.filter(x => x.id !== id));
   };
 
   const clearAllData = () => {
     if (!confirm('ئایا دڵنیایت لە سڕینەوەی هەموو داتاکانی ئەم بەشە؟ ئەم کارە ناگەڕێتەوە.')) return;
+    if (tab === 'rates') onUpdateRates([]);
+    if (tab === 'metals') onUpdateMetals([]);
+    if (tab === 'crypto') onUpdateCrypto([]);
+    if (tab === 'news') onUpdateHeadlines([]);
     if (tab === 'users') onUpdateUsers(prev => prev.filter(u => u.role === 'developer')); // Keep admin
+  };
+
+  const resetToDefault = () => {
+    if (!confirm('ئایا دڵنیایت لە گەڕاندنەوەی داتاکانی ئەم بەشە بۆ باری بنەڕەتی؟')) return;
+    if (tab === 'rates') onUpdateRates(INITIAL_RATES);
+    if (tab === 'metals') onUpdateMetals(INITIAL_METALS);
+    if (tab === 'crypto') onUpdateCrypto(INITIAL_CRYPTO);
   };
 
   const toggleUserStatus = (user: User) => {
@@ -175,6 +200,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <Smartphone size={14} />
             {config.notificationsEnabled ? 'ON' : 'OFF'}
           </button>
+          {['rates', 'metals', 'crypto'].includes(tab) && (
+            <button onClick={resetToDefault} className="bg-white dark:bg-slate-700 text-slate-500 hover:bg-amber-500 hover:text-white px-4 py-2 rounded-lg font-bold text-[10px] uppercase transition-all shadow-sm">گەڕاندنەوەی بنەڕەتی</button>
+          )}
           <button onClick={clearAllData} className="bg-white dark:bg-slate-700 text-slate-500 hover:bg-rose-500 hover:text-white px-4 py-2 rounded-lg font-bold text-[10px] uppercase transition-all shadow-sm">سڕینەوەی هەموو</button>
           <button onClick={startAdd} className="bg-primary text-white px-6 py-2 rounded-lg font-bold text-[10px] uppercase shadow-sm">بڕگەی نوێ</button>
         </div>
@@ -326,6 +354,133 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button onClick={() => setEditingId(null)} className="p-2 text-slate-400"><X size={20}/></button>
             </div>
             <div className="space-y-4">
+              {tab === 'rates' && (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ناو (Name)</label>
+                    <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">کۆد (Code)</label>
+                      <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.code || ''} onChange={e => setEditForm({...editForm, code: e.target.value})} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">هێما (Symbol)</label>
+                      <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.symbol || ''} onChange={e => setEditForm({...editForm, symbol: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">کڕین (Buy)</label>
+                      <input type="number" className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-black outline-none text-lg text-emerald-600 dark:text-emerald-400 focus:border-emerald-500" value={editForm.buy || ''} onChange={e => setEditForm({...editForm, buy: parseFloat(e.target.value)})} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">فرۆشتن (Sell)</label>
+                      <input type="number" className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-black outline-none text-lg text-rose-600 dark:text-rose-400 focus:border-rose-500" value={editForm.sell || ''} onChange={e => setEditForm({...editForm, sell: parseFloat(e.target.value)})} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">بەش (Category)</label>
+                      <select className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-black text-[10px] dark:text-white appearance-none" value={editForm.category || 'local'} onChange={e => setEditForm({...editForm, category: e.target.value})}>
+                        <option value="local">ناوخۆ (Local)</option>
+                        <option value="global">جیهانی (Global)</option>
+                        <option value="toman">تمەن (Toman)</option>
+                        <option value="transfer">حەواڵە (Transfer)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">گۆڕانکاری (24h %)</label>
+                      <input type="number" className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.change24h || ''} onChange={e => setEditForm({...editForm, change24h: parseFloat(e.target.value)})} />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><ImageIcon size={12}/> ئاڵا (Flag URL)</label>
+                    <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-mono outline-none text-[10px] text-slate-500 focus:border-primary" value={editForm.flag || ''} onChange={e => setEditForm({...editForm, flag: e.target.value})} placeholder="https://flagcdn.com/w80/us.png" />
+                  </div>
+                </>
+              )}
+              {tab === 'metals' && (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ناو (Name)</label>
+                    <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">کۆد (Code)</label>
+                      <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.code || ''} onChange={e => setEditForm({...editForm, code: e.target.value})} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">یەکە (Unit)</label>
+                      <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.unit || ''} onChange={e => setEditForm({...editForm, unit: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">کڕین (Buy)</label>
+                      <input type="number" className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-black outline-none text-lg text-emerald-600 dark:text-emerald-400 focus:border-emerald-500" value={editForm.buy || ''} onChange={e => setEditForm({...editForm, buy: parseFloat(e.target.value)})} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">فرۆشتن (Sell)</label>
+                      <input type="number" className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-black outline-none text-lg text-rose-600 dark:text-rose-400 focus:border-rose-500" value={editForm.sell || ''} onChange={e => setEditForm({...editForm, sell: parseFloat(e.target.value)})} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">بەش (Category)</label>
+                      <select className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-black text-[10px] dark:text-white appearance-none" value={editForm.category || 'gold'} onChange={e => setEditForm({...editForm, category: e.target.value})}>
+                        <option value="gold">زێڕ (Gold)</option>
+                        <option value="silver">زیو (Silver)</option>
+                        <option value="global">بۆرسە (Global)</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">گۆڕانکاری (24h %)</label>
+                      <input type="number" className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.change24h || ''} onChange={e => setEditForm({...editForm, change24h: parseFloat(e.target.value)})} />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><ImageIcon size={12}/> ئایکۆن (Icon URL)</label>
+                    <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-mono outline-none text-[10px] text-slate-500 focus:border-primary" value={editForm.icon || ''} onChange={e => setEditForm({...editForm, icon: e.target.value})} placeholder="https://cdn-icons-png.flaticon.com/..." />
+                  </div>
+                </>
+              )}
+              {tab === 'crypto' && (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ناو (Name)</label>
+                    <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">هێما (Symbol)</label>
+                      <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary" value={editForm.symbol || ''} onChange={e => setEditForm({...editForm, symbol: e.target.value})} />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black text-slate-400 uppercase">نرخ (Price)</label>
+                      <input type="number" className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-black outline-none text-lg text-emerald-600 dark:text-emerald-400 focus:border-emerald-500" value={editForm.price || ''} onChange={e => setEditForm({...editForm, price: parseFloat(e.target.value)})} />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><ImageIcon size={12}/> ئایکۆن (Icon URL)</label>
+                    <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-mono outline-none text-[10px] text-slate-500 focus:border-primary" value={editForm.icon || ''} onChange={e => setEditForm({...editForm, icon: e.target.value})} placeholder="https://cryptologos.cc/..." />
+                  </div>
+                </>
+              )}
+              {tab === 'news' && (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">دەقی هەواڵ (Headline Text)</label>
+                    <textarea className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-bold outline-none text-xs dark:text-white focus:border-primary h-24 resize-none" value={editForm.text || ''} onChange={e => setEditForm({...editForm, text: e.target.value})} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><LinkIcon size={12}/> بەستەر (Link URL - Optional)</label>
+                    <input className="w-full p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-mono outline-none text-[10px] text-slate-500 focus:border-primary" value={editForm.link || ''} onChange={e => setEditForm({...editForm, link: e.target.value})} placeholder="https://..." />
+                  </div>
+                </>
+              )}
               {tab === 'users' && (
                 <>
                   <div className="space-y-1">
